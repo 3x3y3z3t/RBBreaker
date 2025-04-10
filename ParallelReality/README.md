@@ -3,8 +3,9 @@ This tool is a mod loader for Reality Break.
 
 Version: **1.1.0 (2025.04.11)**
 
-Release (compiled binary):  
-[win-x64 v1.0.1](https://github.com/3x3y3z3t/RBBreaker/releases/tag/1.0)
+Release (compiled binary included):  
+[win-x64 v1.0.1](https://github.com/3x3y3z3t/RBBreaker/releases/tag/1.0)  
+[win-x64 v1.1.0](https://github.com/3x3y3z3t/RBBreaker/releases/tag/1.1)
 
 
 ### Usage
