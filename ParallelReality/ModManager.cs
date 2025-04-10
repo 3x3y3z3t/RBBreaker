@@ -1,5 +1,5 @@
 /*  ModManager.cs
- *  Version 1.1 (2025.04.11)
+ *  Version 1.2 (2025.04.11)
  *  
  *  Contributor
  *      Arime-chan (Author)
@@ -172,7 +172,7 @@ namespace ParallelReality
             for (int i = 0; i < _modIndices.Count; ++i)
             {
                 ModInfo mod = FoundMods[_modIndices[i]];
-                //ApplyMod(mod);
+                ApplyMod(mod);
                 names[i] = i + "/" + mod.Name;
                 Console.WriteLine("    Applied mod '" + mod.Name + " (Id = " + mod.Index + ").");
             }
