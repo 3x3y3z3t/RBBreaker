@@ -31,12 +31,11 @@ Parent Folder (typically mod name)
 ```
 
 The tool will look for certain data in the mod's readme file. If a line with the following format is found, the correspond data will be set.
-- `Name: [Mod name here]` (default to using Parent Folder's name)
-- `Author: [Author name here]`
-- `Mod Version: [Mod version here]`
-- `Game Version: [Game version here]`
-
-Currently all of the above are optional (values default to empty string, with exception of Mod name).
+- `Name: ABC`: will set Mod Name to "ABC". Default to using Parent Folder's name.
+- `Author: ABC`: will set Mod Author to "ABC". Default to empty string.
+- `Authors: ABC`: plural version of `Author`, behavior is the same.
+- `ModVersion: ABC`: will set Mod Version to "ABC". Default to empty string.
+- `GameVersion: ABC`: will set (required) Game Version to "ABC". Tool will not check for compatible game version. Default to empty string.
 
 -----
 ### Acknowledgement
