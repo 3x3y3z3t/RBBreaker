@@ -5,6 +5,16 @@ VisualStudioVersion = 17.8.34330.188
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RBWatcher", "RBWatcher\RBWatcher.csproj", "{7D0196EB-3B5B-4EFA-9F7D-4B0276BDA072}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{B480CA47-196C-40F3-9BB2-B70501C008DE}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+		.gitignore = .gitignore
+		LICENSE.md = LICENSE.md
+		README.md = README.md
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ParallelReality", "ParallelReality\ParallelReality.csproj", "{D90B43CC-58E6-4FFE-8C61-A118855E2A84}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +25,10 @@ Global
 		{7D0196EB-3B5B-4EFA-9F7D-4B0276BDA072}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7D0196EB-3B5B-4EFA-9F7D-4B0276BDA072}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7D0196EB-3B5B-4EFA-9F7D-4B0276BDA072}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D90B43CC-58E6-4FFE-8C61-A118855E2A84}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D90B43CC-58E6-4FFE-8C61-A118855E2A84}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D90B43CC-58E6-4FFE-8C61-A118855E2A84}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D90B43CC-58E6-4FFE-8C61-A118855E2A84}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
