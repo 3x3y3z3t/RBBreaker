@@ -1,5 +1,5 @@
 /*  ModManager.cs
- *  Version 1.0 (2025.04.10)
+ *  Version 1.1 (2025.04.11)
  *  
  *  Contributor
  *      Arime-chan (Author)
@@ -23,12 +23,15 @@ namespace ParallelReality
             set
             {
                 m_BaseGameDir = value;
-                m_ModdedFlagFile = m_BaseGameDir + "/modded";
+                m_ModdedFlagFile = m_BaseGameDir + "/modded.txt";
+
+                ModDir = value + "/Mods";
             }
         }
 
         public string ModDir { get; private set; } = string.Empty;
 
+        public bool IsGameModded { get => File.Exists(m_ModdedFlagFile); }
 
 
         public List<ModInfo> FoundMods { get; private set; }
@@ -41,31 +44,90 @@ namespace ParallelReality
             SelectedMods = new();
         }
 
-        public void PopulateModInfo()
+
+        public List<ModInfo> GetLoadedMods()
         {
-            ModDir = BaseGameDir + "/Mods";
+            List<ModInfo> list = new();
+            foreach (ModInfo mod in FoundMods)
+            {
+                if (mod.LoadedOrder != -1)
+                    list.Add(mod);
+            }
+
+            list.Sort((ModInfo _a, ModInfo _b) => { return _a.LoadedOrder.CompareTo(_b.LoadedOrder); });
+            return list;
+        }
+
+        public void CheckForDownloadedMods()
+        {
             Directory.CreateDirectory(ModDir);
 
+            FoundMods.Clear();
 
-
+            int index = 0;
             IEnumerable<string> dirs = Directory.EnumerateDirectories(ModDir);
-
             foreach (var dir in dirs)
             {
                 if (dir.EndsWith("Base Game"))
                     continue;
 
-                ModInfo mod = new(dir);
+                ModInfo mod = new(dir, index);
                 FoundMods.Add(mod);
+                ++index;
             }
 
-
-
-
+            Console.WriteLine("Found total " + FoundMods.Count + " mods.");
         }
 
-        public void BackupBaseGame()
+        public void CheckForAppliedMods()
         {
+            if (!IsGameModded)
+            {
+                foreach (var mod in FoundMods)
+                {
+                    mod.LoadedOrder = -1;
+                }
+
+                return;
+            }
+
+            List<ModInfo> loadedMods = new();
+            string[] lines = File.ReadAllLines(m_ModdedFlagFile);
+            foreach (string line in lines)
+            {
+                int pos = line.IndexOf('/');
+                if (pos == -1) continue;
+
+                if (!int.TryParse(line[0..pos], out int order))
+                    continue;
+
+                string name = line[(pos + 1)..];
+
+                // ==========
+                foreach (var mod in FoundMods)
+                {
+                    if (mod.Name == name)
+                    {
+                        mod.LoadedOrder = order;
+                        loadedMods.Add(mod);
+                        break;
+                    }
+                }
+
+            }
+
+            Console.WriteLine("    In which, " + loadedMods.Count + " mods are already loaded.");
+            foreach (var mod in loadedMods)
+            {
+                Console.WriteLine("        '" + mod.Name + "' (Id = " + mod.Index + ")");
+            }
+        }
+
+        public void BackupBaseGame(bool _force = false)
+        {
+            if (Directory.Exists(ModDir + "/Base Game") && !_force)
+                return;
+
             Directory.CreateDirectory(ModDir + "/Base Game");
 
             if (File.Exists(m_ModdedFlagFile))
@@ -94,26 +156,28 @@ namespace ParallelReality
                 File.Delete(m_ModdedFlagFile);
             }
 
+            foreach (var mod in FoundMods)
+            {
+                mod.LoadedOrder = -1;
+            }
+
             Console.WriteLine("Base Game data restored.");
         }
 
         public void ApplyMods(List<int> _modIndices)
         {
-            if (_modIndices.Count == 0)
+            Console.WriteLine("Applying " + _modIndices.Count + " mods..");
+
+            string[] names = new string[_modIndices.Count];
+            for (int i = 0; i < _modIndices.Count; ++i)
             {
-                Console.WriteLine("No mod selected.");
-                return;
+                ModInfo mod = FoundMods[_modIndices[i]];
+                //ApplyMod(mod);
+                names[i] = i + "/" + mod.Name;
+                Console.WriteLine("    Applied mod '" + mod.Name + " (Id = " + mod.Index + ").");
             }
 
-            foreach (int index in _modIndices)
-            {
-                ModInfo mod = FoundMods[index];
-
-                ApplyMod(mod);
-                Console.WriteLine("Applied mod (" + index + ") " + mod.Name + ".");
-            }
-
-            File.Create(m_ModdedFlagFile).Close();
+            File.WriteAllLines(m_ModdedFlagFile, names.ToArray());
         }
 
         private void ApplyMod(ModInfo _mod)

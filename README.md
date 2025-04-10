@@ -7,7 +7,7 @@ Certain tools **will** break when game update.
 ## [Parallel Reality (game version 1.00.1)](ParallelReality)
 Basically a mod loader.
 
-Version: **1.0 (2025.04.10)**
+Version: **1.1 (2025.04.11)**
 
 -----
 

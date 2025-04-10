@@ -1,10 +1,11 @@
 /*  Form1.cs
- *  Version 1.0 (2025.04.10)
+ *  Version 1.1 (2025.04.11)
  *  
  *  Contributor
  *      Arime-chan (Author)
  */
 
+using System.Diagnostics;
 using System.IO;
 
 namespace ParallelReality
@@ -15,35 +16,38 @@ namespace ParallelReality
         {
             InitializeComponent();
 
-            m_ModManager = new();
+
 
             if (!ReadConfigFile())
             {
-
+                Console.WriteLine("Config file not found. A new file will be created soon.");
             }
 
-            if (m_ModManager.BaseGameDir == string.Empty)
+            if (Config.BaseGameDir == string.Empty)
             {
                 SelectBaseDirectory();
             }
 
-            AddBaseGameEntryToList();
-
-            if (m_ModManager.BaseGameDir != string.Empty)
+            if (Config.BaseGameDir != string.Empty)
             {
-                m_TbBaseGameDir.Text = m_ModManager.BaseGameDir;
+                m_TbBaseGameDir.Text = Config.BaseGameDir;
 
-                m_ModManager.PopulateModInfo();
-                Console.WriteLine("Found " + m_ModManager.FoundMods.Count + " mod(s).");
+                m_ModManager = new();
+                m_ModManager.BaseGameDir = Config.BaseGameDir;
 
+                m_ModManager.CheckForDownloadedMods();
+                m_ModManager.CheckForAppliedMods();
 
+                RefreshFoundModsList();
+                RefreshAppliedModsList();
 
-
+                if (!m_ModManager.IsGameModded)
+                {
+                    m_ModManager.BackupBaseGame();
+                }
             }
 
-            AddModsToList();
-
-            m_ModManager.BackupBaseGame();
+            SaveConfigFile();
 
 
 
@@ -79,13 +83,12 @@ namespace ParallelReality
                 }
 
 
-                m_ModManager.BaseGameDir = path;
+                Config.BaseGameDir = path;
                 //m_TbBaseGameDir.Invoke(() => m_TbBaseGameDir.Text = fullname);
-
-                SaveConfigFile();
             }
         }
 
+        #region Config File
         /// <summary>
         /// 
         /// </summary>
@@ -128,15 +131,14 @@ namespace ParallelReality
                 if (commentPos < pos)
                     continue;
 
+                // ==========
                 string key = line[0..pos];
                 string value = line[(pos + 1)..commentPos];
 
                 if (key == "BaseGameDir")
                 {
-                    m_ModManager.BaseGameDir = value;
+                    Config.BaseGameDir = value;
                 }
-
-
 
 
             }
@@ -161,25 +163,21 @@ namespace ParallelReality
                 return false;
             }
 
-
-            stream.WriteLine("BaseGameDir=" + m_ModManager.BaseGameDir);
+            stream.WriteLine("BaseGameDir=" + Config.BaseGameDir);
 
             stream.Flush();
             stream.Close();
 
             return true;
         }
+        #endregion
 
-        private void AddBaseGameEntryToList()
+        private void RefreshFoundModsList()
         {
+            if (m_ModManager == null || m_ModManager.BaseGameDir == string.Empty)
+                return;
 
-        }
-
-        private void AddModsToList()
-        {
             lbl_FoundModsCount.Text = m_ModManager.FoundMods.Count.ToString();
-
-            dgv_ModsList.SuspendLayout();
 
             dgv_ModsList.ClearSelection();
             dgv_ModsList.Rows.Clear();
@@ -187,20 +185,72 @@ namespace ParallelReality
             for (int i = 0; i < m_ModManager.FoundMods.Count; ++i)
             {
                 ModInfo mod = m_ModManager.FoundMods[i];
+                if (mod.LoadedOrder != -1)
+                    continue;
+
                 dynamic d = new dynamic[] {
-                    i,
+                    mod.Index,
                     mod.Name,
                     mod.Author,
                     mod.ModVersion,
                     mod.GameVersion,
                 };
                 dgv_ModsList.Rows.Add(d);
-                //dgv_ModsList.Rows.Add(d);
             }
 
-            dgv_ModsList.ResumeLayout(true);
-
             dgv_ModsList.ClearSelection();
+
+        }
+
+        private void RefreshAppliedModsList()
+        {
+            if (m_ModManager == null || m_ModManager.BaseGameDir == string.Empty)
+                return;
+
+            List<ModInfo> modList = m_ModManager.GetLoadedMods();
+            //lbl_FoundModsCount.Text = m_ModManager.FoundMods.Count.ToString();
+
+            dgv_SelectedMod.ClearSelection();
+            dgv_SelectedMod.Rows.Clear();
+
+            for (int i = 0; i < modList.Count; ++i)
+            {
+                ModInfo mod = modList[i];
+
+                dynamic d = new dynamic[] {
+                    mod.Index,
+                    mod.Name,
+                    mod.Author,
+                    mod.ModVersion,
+                    mod.GameVersion,
+                };
+                dgv_SelectedMod.Rows.Add(d);
+            }
+
+            dgv_SelectedMod.ClearSelection();
+        }
+
+        private void AddBaseGameEntryToList()
+        {
+
+        }
+
+        private void RefreshModInfoDisplay(ModInfo _mod)
+        {
+            btn_OpenReadme.Invoke(() => btn_OpenReadme.Enabled = _mod.ReadmeFileFullname != string.Empty);
+
+            lbl_ModName.Invoke(() => lbl_ModName.Text = _mod.Name);
+            lbl_Author.Invoke(() => lbl_Author.Text = _mod.Author);
+            lbl_ModVer.Invoke(() => lbl_ModVer.Text = _mod.ModVersion);
+            lbl_GameVer.Invoke(() => lbl_GameVer.Text = _mod.GameVersion);
+
+            string text = "";
+            foreach (string file in _mod.ModifiedFiles)
+            {
+                text += "    " + file + "\r\n";
+            }
+
+            tb_ModFiles.Invoke(() => tb_ModFiles.Text = text);
 
 
         }
@@ -245,87 +295,148 @@ namespace ParallelReality
         private const string c_ConfigFilename = "config.ini";
 
 
-        private ModManager m_ModManager;
+        private ModManager? m_ModManager = null;
 
-        private void dgv_ModsList_CellClick(object sender, DataGridViewCellEventArgs e)
+
+
+
+
+        private void Form1_Shown(object sender, EventArgs e)
         {
-            //return;
+            dgv_ModsList.ClearSelection();
+            dgv_SelectedMod.ClearSelection();
 
+            btn_OpenReadme.Enabled = false;
 
-            if (e.RowIndex < 0 || e.RowIndex >= dgv_ModsList.Rows.Count)
+            ActiveControl = null;
+        }
+
+        private void btn_RefreshModList_Click(object sender, EventArgs e)
+        {
+            if (m_ModManager == null)
                 return;
 
-            string? name = dgv_ModsList.Rows[e.RowIndex].Cells[0].Value.ToString();
-            if (name == null)
-                return;
+            m_ModManager.CheckForDownloadedMods();
+            m_ModManager.CheckForAppliedMods();
 
-            //Console.WriteLine(e.RowIndex + ": " + name);
-
-            ModInfo mod = m_ModManager.FoundMods[e.RowIndex];
-
-            string text = "";
-            foreach (string file in mod.ModifiedFiles)
-            {
-                text += "    " + file + "\r\n";
-            }
-
-            tb_ModFiles.Text = text;
-
-            lbl_ModName.Text = mod.Name;
-            lbl_Author.Text = mod.Author;
-            lbl_ModVer.Text = mod.ModVersion;
-            lbl_GameVer.Text = mod.GameVersion;
-
-
-
-
-
-            //if (e.RowIndex == m_DgvGame_CodexList_SelectedRow)
-            //    return;
-
-            //m_DgvGame_CodexList_SelectedRow = e.RowIndex;
-            //string name = m_DgvGame_CodexList.Rows[e.RowIndex].Cells[0].Value.ToString();
-
-            //var itemSets = m_Game.Player.PlayerProgressionElement.ItemSets;
-            //foreach (CItemSet set in itemSets)
-            //{
-            //    if (set.ProtoName == name)
-            //    {
-            //        PresentItemSetEntries(set);
-            //        return;
-            //    }
-            //}
+            RefreshFoundModsList();
+            RefreshAppliedModsList();
         }
 
         private void btn_SelectDir_Click(object sender, EventArgs e)
         {
             SelectBaseDirectory();
+            SaveConfigFile();
+
+            if (m_ModManager == null)
+                return;
+
+            m_ModManager.BaseGameDir = Config.BaseGameDir;
+        }
+
+        private void dgv_ModsList_CellClick(object sender, DataGridViewCellEventArgs e)
+        {
+            if (m_ModManager == null)
+                return;
+
+            if (e.RowIndex < 0 || e.RowIndex >= dgv_ModsList.Rows.Count)
+                return;
+
+            int index = (int)dgv_ModsList.Rows[e.RowIndex].Cells[0].Value;
+            ModInfo mod = m_ModManager.FoundMods[index];
+            RefreshModInfoDisplay(mod);
+
+        }
+
+        private void dgv_SelectedMod_CellClick(object sender, DataGridViewCellEventArgs e)
+        {
+            if (m_ModManager == null)
+                return;
+
+            int index = (int)dgv_SelectedMod.Rows[e.RowIndex].Cells[0].Value;
+            ModInfo mod = m_ModManager.FoundMods[index];
+            RefreshModInfoDisplay(mod);
+        }
+
+        private void btn_OpenReadme_Click(object sender, EventArgs e)
+        {
+            if (m_ModManager == null)
+                return;
+
+            int index = -1;
+            if (dgv_ModsList.SelectedRows.Count != 0)
+            {
+                int selectedRow = dgv_ModsList.SelectedRows[0].Index;
+                index = (int)dgv_ModsList.Rows[selectedRow].Cells[0].Value;
+            }
+            else if (dgv_SelectedMod.SelectedRows.Count != 0)
+            {
+                int selectedRow = dgv_SelectedMod.SelectedRows[0].Index;
+                index = (int)dgv_SelectedMod.Rows[selectedRow].Cells[0].Value;
+            }
+
+            if (index == -1)
+                return;
+
+            ModInfo mod = m_ModManager.FoundMods[index];
+            if (mod.ReadmeFileFullname != string.Empty)
+            {
+                //Process proc = Process.Start(mod.ReadmeFileFullname);
+                Process? proc = Process.Start(new ProcessStartInfo()
+                {
+                    UseShellExecute = true,
+                    FileName = mod.ReadmeFileFullname,
+                });
+            }
+
+
+
+
         }
 
         private void btn_RestoreBaseGame_Click(object sender, EventArgs e)
         {
+            if (m_ModManager == null)
+                return;
+
             m_ModManager.RestoreBaseGame();
+
+            RefreshFoundModsList();
+            RefreshAppliedModsList();
         }
 
         private void btn_ApplyMod_Click(object sender, EventArgs e)
         {
+            if (m_ModManager == null)
+                return;
+
             List<int> selectedMods = new();
             for (int i = 0; i < dgv_SelectedMod.Rows.Count; ++i)
             {
                 int index = (int)dgv_SelectedMod.Rows[i].Cells[0].Value;
 
-
-                //bool b = (bool)dgv_SelectedMod.Rows[i].Cells[0].Value;
-                //if (!b)
-                //    continue;
                 selectedMods.Add(index);
             }
 
-            m_ModManager.ApplyMods(selectedMods);
+            if (selectedMods.Count > 0)
+            {
+                m_ModManager.ApplyMods(selectedMods);
+            }
+            else
+            {
+                Console.WriteLine("No mod selected. Restore to Base Game instead.");
+                m_ModManager.RestoreBaseGame();
+            }
         }
 
         private void btn_Select_Click(object sender, EventArgs e)
         {
+            if (m_ModManager == null)
+                return;
+
+            if (dgv_ModsList.SelectedRows.Count == 0)
+                return;
+
             int selectedRow = dgv_ModsList.SelectedRows[0].Index;
             if (selectedRow < 0 || selectedRow > dgv_ModsList.Rows.Count)
                 return;
@@ -343,12 +454,20 @@ namespace ParallelReality
                 cells[4].Value,
             };
             dgv_SelectedMod.Rows.Add(d);
+            dgv_SelectedMod.Rows[dgv_SelectedMod.Rows.Count - 1].Cells[0].Selected = true;
 
             dgv_ModsList.Rows.RemoveAt(selectedRow);
+            dgv_ModsList.ClearSelection();
         }
 
         private void btn_Unselect_Click(object sender, EventArgs e)
         {
+            if (m_ModManager == null)
+                return;
+
+            if (dgv_SelectedMod.SelectedRows.Count == 0)
+                return;
+
             int selectedRow = dgv_SelectedMod.SelectedRows[0].Index;
             if (selectedRow < 0 || selectedRow > dgv_SelectedMod.Rows.Count)
                 return;
@@ -366,21 +485,34 @@ namespace ParallelReality
                 cells[4].Value,
             };
             dgv_ModsList.Rows.Add(d);
+            dgv_ModsList.Rows[dgv_ModsList.Rows.Count - 1].Cells[0].Selected = true;
 
             dgv_SelectedMod.Rows.RemoveAt(selectedRow);
+            dgv_SelectedMod.ClearSelection();
         }
 
         private void btn_MoveUp_Click(object sender, EventArgs e)
         {
+            if (m_ModManager == null)
+                return;
+
             //MoveModUp(dgv_ModsList);
             MoveModUp(dgv_SelectedMod);
         }
 
         private void btn_MoveDown_Click(object sender, EventArgs e)
         {
+            if (m_ModManager == null)
+                return;
+
             //MoveModDown(dgv_ModsList);
             MoveModDown(dgv_SelectedMod);
         }
+    }
+
+    internal static class Config
+    {
+        public static string BaseGameDir = string.Empty;
     }
 
 }

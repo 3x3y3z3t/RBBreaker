@@ -1,5 +1,5 @@
 /*  ModInfo.cs
- *  Version 1.0 (2025.04.10)
+ *  Version 1.1 (2025.04.11)
  *  
  *  Contributor
  *      Arime-chan (Author)
@@ -16,18 +16,23 @@ namespace ParallelReality
     internal class ModInfo
     {
         public string Name { get; private set; }
-        public string Author { get; private set; }
-        public string ModVersion { get; private set; }
-        public string GameVersion { get; private set; }
+        public string Author { get; private set; } = string.Empty;
+        public string ModVersion { get; private set; } = string.Empty;
+        public string GameVersion { get; private set; } = string.Empty;
 
+        public int Index { get; private set; } = -1;
+        public int LoadedOrder { get; set; } = -1;
         public string ModDir { get; private set; }
+        public string ReadmeFileFullname { get; private set; } = string.Empty;
         public List<string> ModifiedFiles { get; private set; }
 
 
-        public ModInfo(string _path)
+        public ModInfo(string _path, int _index)
         {
-            DirectoryInfo dirInfo = new(_path);
             ModDir = _path;
+            Index = _index;
+
+            DirectoryInfo dirInfo = new(_path);
 
             IEnumerable<string> files = Directory.EnumerateFiles(_path);
             foreach (string file in files)
@@ -35,7 +40,8 @@ namespace ParallelReality
                 string filename = Path.GetFileName(file).ToLower();
                 if (filename.Contains("readme"))
                 {
-                    ParseReadmeFile(_path + "/" + filename);
+                    ReadmeFileFullname = _path + "/" + filename;
+                    ParseReadmeFile(ReadmeFileFullname);
                     break;
                 }
             }
