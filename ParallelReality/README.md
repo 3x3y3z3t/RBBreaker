@@ -2,6 +2,8 @@
 This tool is a mod loader for Reality Break.
 
 Version: **1.0 (2025.04.10)**
+Release:
+[v1.0.1](https://github.com/3x3y3z3t/RBBreaker/releases/tag/1.0)
 
 
 ### Usage
