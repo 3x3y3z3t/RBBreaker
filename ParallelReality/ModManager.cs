@@ -200,7 +200,7 @@ namespace ParallelReality
                 Console.WriteLine("    Applied mod '" + mod.Name + " (Id = " + mod.Index + ").");
             }
 
-            //File.WriteAllLines(m_ModdedFlagFile, names.ToArray());
+            File.WriteAllLines(m_ModdedFlagFile, names.ToArray());
 
             IsApplyInProgress = false;
             CopiesStatus.TotalFiles = 0;
@@ -218,8 +218,8 @@ namespace ParallelReality
                 string srcName = modPath + name;
                 string dstName = basePath + name;
 
-                //File.Copy(srcName, dstName, true);
-                Thread.Sleep(500);
+                File.Copy(srcName, dstName, true);
+                //Thread.Sleep(500);
                 ++CopiesStatus.CopiedFiles;
                 _callbackReportProgress(CopiesStatus.CopiedFiles, CopiesStatus.TotalFiles);
             }
