@@ -6,7 +6,7 @@ Version: **1.2.1 (2025.04.13)**
 Release (compiled binary included):  
 [win-x64 v1.0.1](https://github.com/3x3y3z3t/RBBreaker/releases/tag/1.0)  
 [win-x64 v1.1.1](https://github.com/3x3y3z3t/RBBreaker/releases/tag/1.1)  
-[win-x64 v1.2.1](https://github.com/3x3y3z3t/RBBreaker/releases/tag/1.2)  
+[win-x64 v1.2.1](https://github.com/3x3y3z3t/RBBreaker/releases/tag/1.2.1)  
 
 
 ### Usage
