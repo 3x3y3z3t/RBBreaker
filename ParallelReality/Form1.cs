@@ -1,5 +1,5 @@
 /*  Form1.cs
- *  Version 1.2 (2025.04.12)
+ *  Version 1.3 (2025.04.13)
  *  
  *  Contributor
  *      Arime-chan (Author)
@@ -204,6 +204,8 @@ namespace ParallelReality
                 Console.WriteLine("    Cancelled.");
                 lbl_Status.Text = "Cancelled.";
             }
+
+            btn_ApplyMod.Text = "Apply Selected Mod(s)";
 
             await Task.Delay(2000, CancellationToken.None);
             lbl_Status.Visible = false;
