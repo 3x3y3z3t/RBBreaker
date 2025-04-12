@@ -1,5 +1,5 @@
 /*  ModManager.cs
- *  Version 1.2 (2025.04.11)
+ *  Version 1.3 (2025.04.12)
  *  
  *  Contributor
  *      Arime-chan (Author)
@@ -31,6 +31,7 @@ namespace ParallelReality
 
         public string ModDir { get; private set; } = string.Empty;
 
+        public bool IsApplyInProgress { get; private set; } = false;
         public bool IsGameModded { get => File.Exists(m_ModdedFlagFile); }
 
 
@@ -164,30 +165,66 @@ namespace ParallelReality
             Console.WriteLine("Base Game data restored.");
         }
 
-        public void ApplyMods(List<int> _modIndices)
+        public void ApplyMods(List<int> _modIndices, Action<int, int> _callbackReportProgress, CancellationToken _cancellationToken)
         {
-            Console.WriteLine("Applying " + _modIndices.Count + " mods..");
+            IsApplyInProgress = true;
+
+            CopiesStatus.TotalFiles = 0;
+            for (int i = 0; i < _modIndices.Count; ++i)
+            {
+                ModInfo mod = FoundMods[_modIndices[i]];
+                CopiesStatus.TotalFiles += mod.ModifiedFiles.Count;
+            }
+
+            Console.WriteLine("Applying " + _modIndices.Count + " mods (total " + CopiesStatus.TotalFiles + " files)..");
 
             string[] names = new string[_modIndices.Count];
             for (int i = 0; i < _modIndices.Count; ++i)
             {
                 ModInfo mod = FoundMods[_modIndices[i]];
-                ApplyMod(mod);
+
+                try
+                {
+                    ApplyMod(mod, _callbackReportProgress, _cancellationToken);
+                }
+                catch (OperationCanceledException)
+                {
+                    IsApplyInProgress = false;
+                    CopiesStatus.TotalFiles = 0;
+                    CopiesStatus.CopiedFiles = 0;
+
+                    throw;
+                }
+
                 names[i] = i + "/" + mod.Name;
                 Console.WriteLine("    Applied mod '" + mod.Name + " (Id = " + mod.Index + ").");
             }
 
-            File.WriteAllLines(m_ModdedFlagFile, names.ToArray());
+            //File.WriteAllLines(m_ModdedFlagFile, names.ToArray());
+
+            IsApplyInProgress = false;
+            CopiesStatus.TotalFiles = 0;
+            CopiesStatus.CopiedFiles = 0;
         }
 
-        private void ApplyMod(ModInfo _mod)
+        private void ApplyMod(ModInfo _mod, Action<int, int> _callbackReportProgress, CancellationToken _cancellationToken)
         {
-            string srcDir = _mod.ModDir + "/" + STR_DATA_FOLDER_NAME;
-            string dstDir = BaseGameDir + "/" + STR_DATA_FOLDER_NAME;
-            CopyFiles(srcDir, dstDir);
+            string modPath = _mod.ModDir + "/" + STR_DATA_FOLDER_NAME + "/";
+            string basePath = BaseGameDir + "/" + STR_DATA_FOLDER_NAME + "/";
+            foreach (string name in _mod.ModifiedFiles)
+            {
+                _cancellationToken.ThrowIfCancellationRequested();
 
+                string srcName = modPath + name;
+                string dstName = basePath + name;
 
+                //File.Copy(srcName, dstName, true);
+                Thread.Sleep(500);
+                ++CopiesStatus.CopiedFiles;
+                _callbackReportProgress(CopiesStatus.CopiedFiles, CopiesStatus.TotalFiles);
+            }
 
+            //CopyFiles(srcDir, dstDir);
         }
 
 

@@ -1,5 +1,5 @@
 /*  Form1.cs
- *  Version 1.1 (2025.04.11)
+ *  Version 1.2 (2025.04.12)
  *  
  *  Contributor
  *      Arime-chan (Author)
@@ -172,6 +172,50 @@ namespace ParallelReality
         }
         #endregion
 
+        private async void DoRestoreBaseGame()
+        {
+            lbl_Status.Text = "Restoring Base Game..";
+            lbl_Status.Visible = true;
+
+            await Task.Run(() => m_ModManager?.RestoreBaseGame());
+
+            RefreshFoundModsList();
+            RefreshAppliedModsList();
+
+            lbl_Status.Text = "Base Game restored.";
+            await Task.Delay(2000);
+            lbl_Status.Visible = false;
+
+        }
+
+        private async Task DoApplyMods(List<int> _selectedMods, CancellationToken _cancellationToken)
+        {
+            lbl_Status.Text = "";
+            lbl_Status.Visible = true;
+            try
+            {
+                await Task.Run(() => m_ModManager?.ApplyMods(_selectedMods, UpdateProgressLabel, _cancellationToken));
+
+                string text = lbl_Status.Text[0..(lbl_Status.Text.Length - 2)];
+                lbl_Status.Text += " (Done).";
+            }
+            catch (OperationCanceledException)
+            {
+                Console.WriteLine("    Cancelled.");
+                lbl_Status.Text = "Cancelled.";
+            }
+
+            await Task.Delay(2000, CancellationToken.None);
+            lbl_Status.Visible = false;
+        }
+
+        private async void DoCancelApplyMods()
+        {
+            lbl_Status.Text = "Cancelled.";
+            await Task.Delay(2000);
+            lbl_Status.Visible = false;
+        }
+
         private void RefreshFoundModsList()
         {
             if (m_ModManager == null || m_ModManager.BaseGameDir == string.Empty)
@@ -289,6 +333,19 @@ namespace ParallelReality
             _dgv.Rows[selectedRow + 1].Selected = true;
         }
 
+        private void UpdateProgressLabel(int _copiedFiles, int _totalFiles)
+        {
+            string text = "Status: " + _copiedFiles + "/" + _totalFiles + " files copied.";
+            if (lbl_Status.InvokeRequired)
+            {
+                lbl_Status.Invoke(() => lbl_Status.Text = text);
+            }
+            else
+            {
+                lbl_Status.Text = text;
+            }
+        }
+
 
 
 
@@ -296,6 +353,9 @@ namespace ParallelReality
 
 
         private ModManager? m_ModManager = null;
+
+        private CancellationTokenSource m_ApplyModsCancellationToken;
+        //private readonly System.Windows.Forms.Timer m_StatusUpdateTimer = new System.Windows.Forms.Timer();
 
 
 
@@ -307,6 +367,7 @@ namespace ParallelReality
             dgv_SelectedMod.ClearSelection();
 
             btn_OpenReadme.Enabled = false;
+            lbl_Status.Visible = false;
 
             ActiveControl = null;
         }
@@ -348,6 +409,11 @@ namespace ParallelReality
 
         }
 
+        private void dgv_ModsList_CellDoubleClick(object sender, DataGridViewCellEventArgs e)
+        {
+            _ = MoveItemBetweenDGV(dgv_ModsList, dgv_SelectedMod);
+        }
+
         private void dgv_SelectedMod_CellClick(object sender, DataGridViewCellEventArgs e)
         {
             if (m_ModManager == null)
@@ -356,6 +422,11 @@ namespace ParallelReality
             int index = (int)dgv_SelectedMod.Rows[e.RowIndex].Cells[0].Value;
             ModInfo mod = m_ModManager.FoundMods[index];
             RefreshModInfoDisplay(mod);
+        }
+
+        private void dgv_SelectedMod_CellDoubleClick(object sender, DataGridViewCellEventArgs e)
+        {
+            _ = MoveItemBetweenDGV(dgv_SelectedMod, dgv_ModsList);
         }
 
         private void btn_OpenReadme_Click(object sender, EventArgs e)
@@ -381,17 +452,12 @@ namespace ParallelReality
             ModInfo mod = m_ModManager.FoundMods[index];
             if (mod.ReadmeFileFullname != string.Empty)
             {
-                //Process proc = Process.Start(mod.ReadmeFileFullname);
                 Process? proc = Process.Start(new ProcessStartInfo()
                 {
                     UseShellExecute = true,
                     FileName = mod.ReadmeFileFullname,
                 });
             }
-
-
-
-
         }
 
         private void btn_RestoreBaseGame_Click(object sender, EventArgs e)
@@ -399,34 +465,75 @@ namespace ParallelReality
             if (m_ModManager == null)
                 return;
 
-            m_ModManager.RestoreBaseGame();
-
-            RefreshFoundModsList();
-            RefreshAppliedModsList();
+            DoRestoreBaseGame();
         }
 
-        private void btn_ApplyMod_Click(object sender, EventArgs e)
+        private async void btn_ApplyMod_Click(object sender, EventArgs e)
         {
             if (m_ModManager == null)
                 return;
 
-            List<int> selectedMods = new();
-            for (int i = 0; i < dgv_SelectedMod.Rows.Count; ++i)
+            if (m_ModManager.IsApplyInProgress)
             {
-                int index = (int)dgv_SelectedMod.Rows[i].Cells[0].Value;
+                m_ApplyModsCancellationToken.Cancel();
 
-                selectedMods.Add(index);
-            }
-
-            if (selectedMods.Count > 0)
-            {
-                m_ModManager.ApplyMods(selectedMods);
+                DoCancelApplyMods();
+                btn_ApplyMod.Text = "Apply Selected Mod(s)";
             }
             else
             {
-                Console.WriteLine("No mod selected. Restore to Base Game instead.");
-                m_ModManager.RestoreBaseGame();
+                List<int> selectedMods = new();
+                for (int i = 0; i < dgv_SelectedMod.Rows.Count; ++i)
+                {
+                    int index = (int)dgv_SelectedMod.Rows[i].Cells[0].Value;
+
+                    selectedMods.Add(index);
+                }
+
+                if (selectedMods.Count > 0)
+                {
+                    m_ApplyModsCancellationToken = new CancellationTokenSource();
+
+                    btn_ApplyMod.Text = "Cancel (NO Rollback!)";
+                    await DoApplyMods(selectedMods, m_ApplyModsCancellationToken.Token);
+                    m_ApplyModsCancellationToken.Dispose();
+                }
+                else
+                {
+                    Console.WriteLine("No mod selected. Restore to Base Game instead.");
+                    DoRestoreBaseGame();
+                }
             }
+        }
+
+        private bool MoveItemBetweenDGV(DataGridView _src, DataGridView _dst)
+        {
+            if (_src.SelectedRows.Count == 0)
+                return false;
+
+            int selected = _src.SelectedRows[0].Index;
+            if (selected < 0 || selected > _src.Rows.Count)
+                return false;
+
+            var cells = _src.SelectedRows[0].Cells;
+            if (cells == null || cells.Count == 0)
+                return false;
+
+            dynamic d = new dynamic[]
+            {
+                cells[0].Value,
+                cells[1].Value,
+                cells[2].Value,
+                cells[3].Value,
+                cells[4].Value,
+            };
+            _dst.Rows.Add(d);
+            _dst.Rows[^1].Cells[0].Selected = true;
+
+            _src.Rows.RemoveAt(selected);
+            _src.ClearSelection();
+
+            return true;
         }
 
         private void btn_Select_Click(object sender, EventArgs e)
@@ -434,30 +541,32 @@ namespace ParallelReality
             if (m_ModManager == null)
                 return;
 
-            if (dgv_ModsList.SelectedRows.Count == 0)
-                return;
+            _ = MoveItemBetweenDGV(dgv_ModsList, dgv_SelectedMod);
 
-            int selectedRow = dgv_ModsList.SelectedRows[0].Index;
-            if (selectedRow < 0 || selectedRow > dgv_ModsList.Rows.Count)
-                return;
+            //if (dgv_ModsList.SelectedRows.Count == 0)
+            //    return;
 
-            var cells = dgv_ModsList.SelectedRows[0].Cells;
-            if (cells == null || cells.Count == 0)
-                return;
+            //int selectedRow = dgv_ModsList.SelectedRows[0].Index;
+            //if (selectedRow < 0 || selectedRow > dgv_ModsList.Rows.Count)
+            //    return;
 
-            dynamic d = new dynamic[]
-            {
-                cells[0].Value,
-                cells[1].Value,
-                cells[2].Value,
-                cells[3].Value,
-                cells[4].Value,
-            };
-            dgv_SelectedMod.Rows.Add(d);
-            dgv_SelectedMod.Rows[dgv_SelectedMod.Rows.Count - 1].Cells[0].Selected = true;
+            //var cells = dgv_ModsList.SelectedRows[0].Cells;
+            //if (cells == null || cells.Count == 0)
+            //    return;
 
-            dgv_ModsList.Rows.RemoveAt(selectedRow);
-            dgv_ModsList.ClearSelection();
+            //dynamic d = new dynamic[]
+            //{
+            //    cells[0].Value,
+            //    cells[1].Value,
+            //    cells[2].Value,
+            //    cells[3].Value,
+            //    cells[4].Value,
+            //};
+            //dgv_SelectedMod.Rows.Add(d);
+            //dgv_SelectedMod.Rows[dgv_SelectedMod.Rows.Count - 1].Cells[0].Selected = true;
+
+            //dgv_ModsList.Rows.RemoveAt(selectedRow);
+            //dgv_ModsList.ClearSelection();
         }
 
         private void btn_Unselect_Click(object sender, EventArgs e)
@@ -465,30 +574,32 @@ namespace ParallelReality
             if (m_ModManager == null)
                 return;
 
-            if (dgv_SelectedMod.SelectedRows.Count == 0)
-                return;
+            _ = MoveItemBetweenDGV(dgv_SelectedMod, dgv_ModsList);
 
-            int selectedRow = dgv_SelectedMod.SelectedRows[0].Index;
-            if (selectedRow < 0 || selectedRow > dgv_SelectedMod.Rows.Count)
-                return;
+            //if (dgv_SelectedMod.SelectedRows.Count == 0)
+            //    return;
 
-            var cells = dgv_SelectedMod.SelectedRows[0].Cells;
-            if (cells == null || cells.Count == 0)
-                return;
+            //int selectedRow = dgv_SelectedMod.SelectedRows[0].Index;
+            //if (selectedRow < 0 || selectedRow > dgv_SelectedMod.Rows.Count)
+            //    return;
 
-            dynamic d = new dynamic[]
-            {
-                cells[0].Value,
-                cells[1].Value,
-                cells[2].Value,
-                cells[3].Value,
-                cells[4].Value,
-            };
-            dgv_ModsList.Rows.Add(d);
-            dgv_ModsList.Rows[dgv_ModsList.Rows.Count - 1].Cells[0].Selected = true;
+            //var cells = dgv_SelectedMod.SelectedRows[0].Cells;
+            //if (cells == null || cells.Count == 0)
+            //    return;
 
-            dgv_SelectedMod.Rows.RemoveAt(selectedRow);
-            dgv_SelectedMod.ClearSelection();
+            //dynamic d = new dynamic[]
+            //{
+            //    cells[0].Value,
+            //    cells[1].Value,
+            //    cells[2].Value,
+            //    cells[3].Value,
+            //    cells[4].Value,
+            //};
+            //dgv_ModsList.Rows.Add(d);
+            //dgv_ModsList.Rows[dgv_ModsList.Rows.Count - 1].Cells[0].Selected = true;
+
+            //dgv_SelectedMod.Rows.RemoveAt(selectedRow);
+            //dgv_SelectedMod.ClearSelection();
         }
 
         private void btn_MoveUp_Click(object sender, EventArgs e)

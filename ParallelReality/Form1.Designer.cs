@@ -66,6 +66,7 @@ namespace ParallelReality
             label8 = new Label();
             btn_OpenReadme = new Button();
             btn_RefreshModList = new Button();
+            lbl_Status = new Label();
             ((System.ComponentModel.ISupportInitialize)dgv_ModsList).BeginInit();
             ((System.ComponentModel.ISupportInitialize)dgv_SelectedMod).BeginInit();
             SuspendLayout();
@@ -129,6 +130,7 @@ namespace ParallelReality
             dgv_ModsList.Size = new Size(555, 312);
             dgv_ModsList.TabIndex = 2;
             dgv_ModsList.CellClick += dgv_ModsList_CellClick;
+            dgv_ModsList.CellDoubleClick += dgv_ModsList_CellDoubleClick;
             // 
             // Column2
             // 
@@ -307,6 +309,7 @@ namespace ParallelReality
             dgv_SelectedMod.Size = new Size(555, 312);
             dgv_SelectedMod.TabIndex = 5;
             dgv_SelectedMod.CellClick += dgv_SelectedMod_CellClick;
+            dgv_SelectedMod.CellDoubleClick += dgv_SelectedMod_CellDoubleClick;
             // 
             // Column6
             // 
@@ -409,6 +412,15 @@ namespace ParallelReality
             btn_RefreshModList.UseVisualStyleBackColor = true;
             btn_RefreshModList.Click += btn_RefreshModList_Click;
             // 
+            // lbl_Status
+            // 
+            lbl_Status.AutoSize = true;
+            lbl_Status.Location = new Point(697, 447);
+            lbl_Status.Name = "lbl_Status";
+            lbl_Status.Size = new Size(39, 15);
+            lbl_Status.TabIndex = 0;
+            lbl_Status.Text = "Status";
+            // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
@@ -436,6 +448,7 @@ namespace ParallelReality
             Controls.Add(lbl_ModName);
             Controls.Add(label4);
             Controls.Add(label2);
+            Controls.Add(lbl_Status);
             Controls.Add(label8);
             Controls.Add(label3);
             Controls.Add(lbl_FoundModsCount);
@@ -487,5 +500,6 @@ namespace ParallelReality
         private DataGridViewTextBoxColumn dataGridViewTextBoxColumn2;
         private DataGridViewTextBoxColumn dataGridViewTextBoxColumn3;
         private DataGridViewTextBoxColumn dataGridViewTextBoxColumn4;
+        private Label lbl_Status;
     }
 }
