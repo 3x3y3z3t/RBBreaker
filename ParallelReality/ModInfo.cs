@@ -1,5 +1,5 @@
 /*  ModInfo.cs
- *  Version 1.1 (2025.04.11)
+ *  Version 1.2 (2025.04.13)
  *  
  *  Contributor
  *      Arime-chan (Author)
@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Security.Policy;
 using System.Text;
 using System.Threading.Tasks;
@@ -19,12 +20,14 @@ namespace ParallelReality
         public string Author { get; private set; } = string.Empty;
         public string ModVersion { get; private set; } = string.Empty;
         public string GameVersion { get; private set; } = string.Empty;
+        public byte[] Hash { get => m_Hash; }
 
         public int Index { get; private set; } = -1;
         public int LoadedOrder { get; set; } = -1;
         public string ModDir { get; private set; }
         public string ReadmeFileFullname { get; private set; } = string.Empty;
         public List<string> ModifiedFiles { get; private set; }
+
 
 
         public ModInfo(string _path, int _index)
@@ -64,6 +67,10 @@ namespace ParallelReality
 
                 ModifiedFiles.Add(name[(pos + len)..]);
             }
+
+            string str = Name + Author + ModVersion + GameVersion;
+            m_Hash = SHA256.HashData(Encoding.UTF8.GetBytes(str));
+
         }
 
 
@@ -120,6 +127,17 @@ namespace ParallelReality
 
         }
 
+        public string GetShortHash()
+        {
+            string str = string.Format("{0:x2}{1:x2}{2:x2}{3:x2}",
+                m_Hash[0],
+                m_Hash[1],
+                m_Hash[2],
+                m_Hash[3]);
+
+            return str;
+        }
+
         private string GetValueFromLine(string _line)
         {
             int pos = _line.IndexOf(':');
@@ -172,6 +190,8 @@ namespace ParallelReality
 
             return list;
         }
+
+        private readonly byte[] m_Hash;
     }
 
 }

@@ -1,5 +1,5 @@
 /*  ModManager.cs
- *  Version 1.3 (2025.04.12)
+ *  Version 1.4 (2025.04.13)
  *  
  *  Contributor
  *      Arime-chan (Author)
@@ -96,18 +96,21 @@ namespace ParallelReality
             string[] lines = File.ReadAllLines(m_ModdedFlagFile);
             foreach (string line in lines)
             {
-                int pos = line.IndexOf('/');
-                if (pos == -1) continue;
+                int pos = line.IndexOf('\t');
+                if (pos == -1 || pos + 9 > line.Length)
+                    continue;
 
                 if (!int.TryParse(line[0..pos], out int order))
                     continue;
+
+                string hash = line[(pos + 1)..(pos + 9)];
 
                 string name = line[(pos + 1)..];
 
                 // ==========
                 foreach (var mod in FoundMods)
                 {
-                    if (mod.Name == name)
+                    if (mod.GetShortHash() == hash)
                     {
                         mod.LoadedOrder = order;
                         loadedMods.Add(mod);
@@ -196,7 +199,7 @@ namespace ParallelReality
                     throw;
                 }
 
-                names[i] = i + "/" + mod.Name;
+                names[i] = i + "\t" + mod.GetShortHash() + "\t" + mod.Name;
                 Console.WriteLine("    Applied mod '" + mod.Name + " (Id = " + mod.Index + ").");
             }
 

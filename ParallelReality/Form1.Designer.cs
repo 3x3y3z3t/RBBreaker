@@ -34,7 +34,7 @@ namespace ParallelReality
             m_TbBaseGameDir = new TextBox();
             lbl_FoundModsCount = new Label();
             label3 = new Label();
-            dgv_ModsList = new DataGridView();
+            dgv_FoundMod = new DataGridView();
             Column2 = new DataGridViewTextBoxColumn();
             Column1 = new DataGridViewTextBoxColumn();
             Column3 = new DataGridViewTextBoxColumn();
@@ -67,7 +67,7 @@ namespace ParallelReality
             btn_OpenReadme = new Button();
             btn_RefreshModList = new Button();
             lbl_Status = new Label();
-            ((System.ComponentModel.ISupportInitialize)dgv_ModsList).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)dgv_FoundMod).BeginInit();
             ((System.ComponentModel.ISupportInitialize)dgv_SelectedMod).BeginInit();
             SuspendLayout();
             // 
@@ -106,11 +106,11 @@ namespace ParallelReality
             label3.TabIndex = 0;
             label3.Text = "Found Mods:";
             // 
-            // dgv_ModsList
+            // dgv_FoundMod
             // 
-            dgv_ModsList.AllowUserToAddRows = false;
-            dgv_ModsList.AllowUserToDeleteRows = false;
-            dgv_ModsList.AllowUserToResizeRows = false;
+            dgv_FoundMod.AllowUserToAddRows = false;
+            dgv_FoundMod.AllowUserToDeleteRows = false;
+            dgv_FoundMod.AllowUserToResizeRows = false;
             dataGridViewCellStyle1.Alignment = DataGridViewContentAlignment.MiddleLeft;
             dataGridViewCellStyle1.BackColor = SystemColors.Control;
             dataGridViewCellStyle1.Font = new Font("Segoe UI", 9F, FontStyle.Regular, GraphicsUnit.Point);
@@ -118,19 +118,20 @@ namespace ParallelReality
             dataGridViewCellStyle1.SelectionBackColor = SystemColors.Highlight;
             dataGridViewCellStyle1.SelectionForeColor = SystemColors.HighlightText;
             dataGridViewCellStyle1.WrapMode = DataGridViewTriState.False;
-            dgv_ModsList.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle1;
-            dgv_ModsList.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            dgv_ModsList.Columns.AddRange(new DataGridViewColumn[] { Column2, Column1, Column3, Column4, Column5 });
-            dgv_ModsList.Location = new Point(12, 94);
-            dgv_ModsList.MultiSelect = false;
-            dgv_ModsList.Name = "dgv_ModsList";
-            dgv_ModsList.RowHeadersVisible = false;
-            dgv_ModsList.RowTemplate.Height = 25;
-            dgv_ModsList.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
-            dgv_ModsList.Size = new Size(555, 312);
-            dgv_ModsList.TabIndex = 2;
-            dgv_ModsList.CellClick += dgv_ModsList_CellClick;
-            dgv_ModsList.CellDoubleClick += dgv_ModsList_CellDoubleClick;
+            dgv_FoundMod.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle1;
+            dgv_FoundMod.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            dgv_FoundMod.Columns.AddRange(new DataGridViewColumn[] { Column2, Column1, Column3, Column4, Column5 });
+            dgv_FoundMod.Location = new Point(12, 94);
+            dgv_FoundMod.MultiSelect = false;
+            dgv_FoundMod.Name = "dgv_FoundMod";
+            dgv_FoundMod.RowHeadersVisible = false;
+            dgv_FoundMod.RowTemplate.Height = 25;
+            dgv_FoundMod.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
+            dgv_FoundMod.Size = new Size(555, 312);
+            dgv_FoundMod.TabIndex = 2;
+            dgv_FoundMod.CellClick += dgv_FoundMod_CellClick;
+            dgv_FoundMod.CellDoubleClick += dgv_FoundMod_CellDoubleClick;
+            dgv_FoundMod.ColumnHeaderMouseClick += dgv_FoundMod_ColumnHeaderMouseClick;
             // 
             // Column2
             // 
@@ -310,6 +311,7 @@ namespace ParallelReality
             dgv_SelectedMod.TabIndex = 5;
             dgv_SelectedMod.CellClick += dgv_SelectedMod_CellClick;
             dgv_SelectedMod.CellDoubleClick += dgv_SelectedMod_CellDoubleClick;
+            dgv_SelectedMod.ColumnHeaderMouseClick += dgv_SelectedMod_ColumnHeaderMouseClick;
             // 
             // Column6
             // 
@@ -437,7 +439,7 @@ namespace ParallelReality
             Controls.Add(btn_ApplyMod);
             Controls.Add(btn_RefreshModList);
             Controls.Add(btn_SelectDir);
-            Controls.Add(dgv_ModsList);
+            Controls.Add(dgv_FoundMod);
             Controls.Add(m_TbBaseGameDir);
             Controls.Add(lbl_GameVer);
             Controls.Add(label7);
@@ -454,9 +456,9 @@ namespace ParallelReality
             Controls.Add(lbl_FoundModsCount);
             Controls.Add(label1);
             Name = "Form1";
-            Text = "Parallel Reality (RB Mod Loader)";
+            Text = "Parallel Reality (RB Mod Loader) v1.3.0";
             Shown += Form1_Shown;
-            ((System.ComponentModel.ISupportInitialize)dgv_ModsList).EndInit();
+            ((System.ComponentModel.ISupportInitialize)dgv_FoundMod).EndInit();
             ((System.ComponentModel.ISupportInitialize)dgv_SelectedMod).EndInit();
             ResumeLayout(false);
             PerformLayout();
@@ -468,7 +470,7 @@ namespace ParallelReality
         private TextBox m_TbBaseGameDir;
         private Label lbl_FoundModsCount;
         private Label label3;
-        private DataGridView dgv_ModsList;
+        private DataGridView dgv_FoundMod;
         private Button btn_SelectDir;
         private TextBox tb_ModFiles;
         private Label label2;

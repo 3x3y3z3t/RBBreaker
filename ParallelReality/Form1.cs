@@ -1,5 +1,5 @@
 /*  Form1.cs
- *  Version 1.3 (2025.04.13)
+ *  Version 1.4 (2025.04.13)
  *  
  *  Contributor
  *      Arime-chan (Author)
@@ -205,7 +205,6 @@ namespace ParallelReality
                 lbl_Status.Text = "Cancelled.";
             }
 
-            btn_ApplyMod.Text = "Apply Selected Mod(s)";
 
             await Task.Delay(2000, CancellationToken.None);
             lbl_Status.Visible = false;
@@ -225,8 +224,8 @@ namespace ParallelReality
 
             lbl_FoundModsCount.Text = m_ModManager.FoundMods.Count.ToString();
 
-            dgv_ModsList.ClearSelection();
-            dgv_ModsList.Rows.Clear();
+            dgv_FoundMod.ClearSelection();
+            dgv_FoundMod.Rows.Clear();
 
             for (int i = 0; i < m_ModManager.FoundMods.Count; ++i)
             {
@@ -241,10 +240,10 @@ namespace ParallelReality
                     mod.ModVersion,
                     mod.GameVersion,
                 };
-                dgv_ModsList.Rows.Add(d);
+                dgv_FoundMod.Rows.Add(d);
             }
 
-            dgv_ModsList.ClearSelection();
+            dgv_FoundMod.ClearSelection();
 
         }
 
@@ -299,6 +298,26 @@ namespace ParallelReality
             tb_ModFiles.Invoke(() => tb_ModFiles.Text = text);
 
 
+        }
+
+        // return true if the click success;
+        private bool HandlerWhenClickOnList(DataGridView _dgv)
+        {
+            if (_dgv.SelectedRows.Count == 0)
+                return false;
+
+            var cells = _dgv.SelectedRows[0].Cells;
+            if (cells.Count == 0)
+                return false;
+
+            if (m_ModManager == null)
+                return true;
+
+            int index = (int)cells[0].Value;
+            ModInfo mod = m_ModManager.FoundMods[index];
+            RefreshModInfoDisplay(mod);
+
+            return true;
         }
 
         private void MoveModUp(DataGridView _dgv)
@@ -363,9 +382,86 @@ namespace ParallelReality
 
 
 
+
+
+        // ==================================================
+        // EVENT HANDLER
+        // ==================================================
+        #region Event Handler
+
+        #region Button
+        #endregion
+
+        #region DataGridView
+        private void dgv_FoundMod_ColumnHeaderMouseClick(object sender, DataGridViewCellMouseEventArgs e)
+        {
+            dgv_FoundMod.ClearSelection();
+        }
+
+        private void dgv_FoundMod_CellClick(object sender, DataGridViewCellEventArgs e)
+        {
+            if (e.RowIndex < 0 || e.RowIndex >= dgv_FoundMod.Rows.Count)
+            {
+                dgv_FoundMod.ClearSelection();
+                return;
+            }
+
+            if (HandlerWhenClickOnList(dgv_FoundMod))
+            {
+                dgv_SelectedMod.ClearSelection();
+            }
+        }
+
+        private void dgv_FoundMod_CellDoubleClick(object sender, DataGridViewCellEventArgs e)
+        {
+            if (e.RowIndex < 0 || e.RowIndex >= dgv_FoundMod.Rows.Count)
+            {
+                dgv_FoundMod.ClearSelection();
+                return;
+            }
+
+            _ = MoveItemBetweenDGV(dgv_FoundMod, dgv_SelectedMod);
+        }
+
+        private void dgv_SelectedMod_ColumnHeaderMouseClick(object sender, DataGridViewCellMouseEventArgs e)
+        {
+            dgv_SelectedMod.ClearSelection();
+        }
+
+        private void dgv_SelectedMod_CellClick(object sender, DataGridViewCellEventArgs e)
+        {
+            if (e.RowIndex < 0 || e.RowIndex >= dgv_SelectedMod.Rows.Count)
+            {
+                dgv_SelectedMod.ClearSelection();
+                return;
+            }
+
+            if (HandlerWhenClickOnList(dgv_SelectedMod))
+            {
+                dgv_FoundMod.ClearSelection();
+            }
+        }
+
+        private void dgv_SelectedMod_CellDoubleClick(object sender, DataGridViewCellEventArgs e)
+        {
+            if (e.RowIndex < 0 || e.RowIndex >= dgv_SelectedMod.Rows.Count)
+            {
+                dgv_SelectedMod.ClearSelection();
+                return;
+            }
+
+            _ = MoveItemBetweenDGV(dgv_SelectedMod, dgv_FoundMod);
+        }
+        #endregion
+
+
+        #endregion
+
+
+
         private void Form1_Shown(object sender, EventArgs e)
         {
-            dgv_ModsList.ClearSelection();
+            dgv_FoundMod.ClearSelection();
             dgv_SelectedMod.ClearSelection();
 
             btn_OpenReadme.Enabled = false;
@@ -397,50 +493,16 @@ namespace ParallelReality
             m_ModManager.BaseGameDir = Config.BaseGameDir;
         }
 
-        private void dgv_ModsList_CellClick(object sender, DataGridViewCellEventArgs e)
-        {
-            if (m_ModManager == null)
-                return;
-
-            if (e.RowIndex < 0 || e.RowIndex >= dgv_ModsList.Rows.Count)
-                return;
-
-            int index = (int)dgv_ModsList.Rows[e.RowIndex].Cells[0].Value;
-            ModInfo mod = m_ModManager.FoundMods[index];
-            RefreshModInfoDisplay(mod);
-
-        }
-
-        private void dgv_ModsList_CellDoubleClick(object sender, DataGridViewCellEventArgs e)
-        {
-            _ = MoveItemBetweenDGV(dgv_ModsList, dgv_SelectedMod);
-        }
-
-        private void dgv_SelectedMod_CellClick(object sender, DataGridViewCellEventArgs e)
-        {
-            if (m_ModManager == null)
-                return;
-
-            int index = (int)dgv_SelectedMod.Rows[e.RowIndex].Cells[0].Value;
-            ModInfo mod = m_ModManager.FoundMods[index];
-            RefreshModInfoDisplay(mod);
-        }
-
-        private void dgv_SelectedMod_CellDoubleClick(object sender, DataGridViewCellEventArgs e)
-        {
-            _ = MoveItemBetweenDGV(dgv_SelectedMod, dgv_ModsList);
-        }
-
         private void btn_OpenReadme_Click(object sender, EventArgs e)
         {
             if (m_ModManager == null)
                 return;
 
             int index = -1;
-            if (dgv_ModsList.SelectedRows.Count != 0)
+            if (dgv_FoundMod.SelectedRows.Count != 0)
             {
-                int selectedRow = dgv_ModsList.SelectedRows[0].Index;
-                index = (int)dgv_ModsList.Rows[selectedRow].Cells[0].Value;
+                int selectedRow = dgv_FoundMod.SelectedRows[0].Index;
+                index = (int)dgv_FoundMod.Rows[selectedRow].Cells[0].Value;
             }
             else if (dgv_SelectedMod.SelectedRows.Count != 0)
             {
@@ -543,7 +605,7 @@ namespace ParallelReality
             if (m_ModManager == null)
                 return;
 
-            _ = MoveItemBetweenDGV(dgv_ModsList, dgv_SelectedMod);
+            _ = MoveItemBetweenDGV(dgv_FoundMod, dgv_SelectedMod);
 
             //if (dgv_ModsList.SelectedRows.Count == 0)
             //    return;
@@ -576,7 +638,7 @@ namespace ParallelReality
             if (m_ModManager == null)
                 return;
 
-            _ = MoveItemBetweenDGV(dgv_SelectedMod, dgv_ModsList);
+            _ = MoveItemBetweenDGV(dgv_SelectedMod, dgv_FoundMod);
 
             //if (dgv_SelectedMod.SelectedRows.Count == 0)
             //    return;
@@ -621,6 +683,7 @@ namespace ParallelReality
             //MoveModDown(dgv_ModsList);
             MoveModDown(dgv_SelectedMod);
         }
+
     }
 
     internal static class Config
