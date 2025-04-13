@@ -1,7 +1,7 @@
 ## Parallel Reality (game version 1.00.1)
 This tool is a mod loader for Reality Break.
 
-Version: **1.3.0 (2025.04.13)**
+Version: **1.3.1 (2025.04.13)**
 
 [Releases (win-x64 compiled binary included)](https://github.com/3x3y3z3t/RBBreaker/releases)
 
