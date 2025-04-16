@@ -1,11 +1,12 @@
 /*  ModInfo.cs
- *  Version 1.2 (2025.04.13)
+ *  Version 1.3 (2025.04.16)
  *  
  *  Contributor
  *      Arime-chan (Author)
  */
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Security.Policy;
@@ -14,7 +15,39 @@ using System.Threading.Tasks;
 
 namespace ParallelReality
 {
-    internal class ModInfo
+    public class ModFileInfo
+    {
+        public string Path { get; private set; } = string.Empty;
+        public string Name { get; private set; } = string.Empty;
+        public string Fullname { get; private set; } = string.Empty;
+        public bool IsApplied { get; set; } = false;
+
+
+        public ModFileInfo(string _fullname)
+        {
+            Fullname = _fullname;
+
+            int pos = _fullname.LastIndexOf(System.IO.Path.PathSeparator);
+            if (pos == -1)
+            {
+                Name = _fullname;
+            }
+            else
+            {
+                Path = _fullname[0..pos];
+                Name = _fullname[(pos + 1)..];
+            }
+        }
+    }
+
+    public class ModInfoSimple
+    {
+        public int LoadedOrder = -1;
+        public string Hash = string.Empty;
+        public string Name = string.Empty;
+    }
+
+    public class ModInfo
     {
         public string Name { get; private set; }
         public string Author { get; private set; } = string.Empty;
@@ -22,18 +55,19 @@ namespace ParallelReality
         public string GameVersion { get; private set; } = string.Empty;
         public byte[] Hash { get => m_Hash; }
 
-        public int Index { get; private set; } = -1;
+        public int ModId { get; private set; } = -1;
         public int LoadedOrder { get; set; } = -1;
         public string ModDir { get; private set; }
         public string ReadmeFileFullname { get; private set; } = string.Empty;
-        public List<string> ModifiedFiles { get; private set; }
+        public List<string> ModFiles { get; private set; }
+        //public List<ModFileInfo> ModFiles { get; private set; }
 
 
 
         public ModInfo(string _path, int _index)
         {
             ModDir = _path;
-            Index = _index;
+            ModId = _index;
 
             DirectoryInfo dirInfo = new(_path);
 
@@ -56,21 +90,20 @@ namespace ParallelReality
 
 
             List<string> list = GetFiles(_path);
-            int len = ModManager.STR_DATA_FOLDER_NAME.Length + 1;
+            int len = ModManager.STR_FOLDER_NAME_DATA.Length + 1;
 
-            ModifiedFiles = new(list.Count);
+            ModFiles = new(list.Count);
             foreach (string name in list)
             {
-                int pos = name.IndexOf(ModManager.STR_DATA_FOLDER_NAME);
+                int pos = name.IndexOf(ModManager.STR_FOLDER_NAME_DATA);
                 if (pos == -1)
                     continue;
 
-                ModifiedFiles.Add(name[(pos + len)..]);
+                ModFiles.Add(name[(pos + len)..]);
             }
 
             string str = Name + Author + ModVersion + GameVersion;
             m_Hash = SHA256.HashData(Encoding.UTF8.GetBytes(str));
-
         }
 
 
@@ -84,18 +117,42 @@ namespace ParallelReality
         //    return _fullname[(pos + len)..];
         //}
 
+
+        public HashSet<int> GetOrComputeListOfModsOverriden(Dictionary<string, List<int>> _fileToModsMap)
+        {
+            if (m_OverriddenMods != null)
+                return m_OverriddenMods;
+
+            m_OverriddenMods = new();
+
+            foreach (var file in ModFiles)
+            {
+                if (!_fileToModsMap.TryGetValue(file, out var modIds))
+                    continue;
+
+                foreach (var id in modIds)
+                {
+                    if (id != ModId)
+                        m_OverriddenMods.Add(id);
+                }
+            }
+
+            return m_OverriddenMods;
+        }
+
+
         public bool HasCollision(ModInfo _otherMod)
         {
-            foreach (string file in ModifiedFiles)
+            foreach (string file in ModFiles)
             {
-                if (_otherMod.ModifiedFiles.Contains(file))
+                if (_otherMod.ModFiles.Contains(file))
                     return true;
             }
 
             return false;
         }
 
-        public void ParseReadmeFile(string _fullname)
+        private void ParseReadmeFile(string _fullname)
         {
             string[] lines = File.ReadAllLines(_fullname);
             foreach (string line in lines)
@@ -147,31 +204,6 @@ namespace ParallelReality
             return _line[(pos + 1)..].Trim();
         }
 
-        private string GetAuthorName(string _modDir)
-        {
-            IEnumerable<string> files = Directory.EnumerateFiles(_modDir);
-            foreach (string file in files)
-            {
-                string filename = Path.GetFileName(file).ToLower();
-                if (!filename.Contains("readme"))
-                    continue;
-
-                string[] lines = File.ReadAllLines(file);
-                foreach (string line in lines)
-                {
-                    if (!line.StartsWith("Author") && !line.StartsWith("Authors"))
-                        continue;
-
-                    int pos = line.IndexOf(':');
-                    if (pos == -1)
-                        continue;
-
-                    return line[(pos + 1)..].Trim();
-                }
-            }
-
-            return string.Empty;
-        }
 
 
         private List<string> GetFiles(string _path)
@@ -190,6 +222,9 @@ namespace ParallelReality
 
             return list;
         }
+
+
+        private HashSet<int>? m_OverriddenMods = null;
 
         private readonly byte[] m_Hash;
     }

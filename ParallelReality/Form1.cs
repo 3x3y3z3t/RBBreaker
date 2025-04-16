@@ -1,5 +1,5 @@
 /*  Form1.cs
- *  Version 1.5 (2025.04.13)
+ *  Version 1.6 (2025.04.16)
  *  
  *  Contributor
  *      Arime-chan (Author)
@@ -7,6 +7,7 @@
 
 using System.Diagnostics;
 using System.IO;
+using System.Threading;
 
 namespace ParallelReality
 {
@@ -17,194 +18,167 @@ namespace ParallelReality
             InitializeComponent();
 
 
-
-            if (!ReadConfigFile())
-            {
-                Console.WriteLine("Config file not found. A new file will be created soon.");
-            }
-
-            if (Config.BaseGameDir == string.Empty)
-            {
-                SelectBaseDirectory();
-            }
-
-            if (Config.BaseGameDir != string.Empty)
-            {
-                m_TbBaseGameDir.Text = Config.BaseGameDir;
-
-                m_ModManager = new();
-                m_ModManager.BaseGameDir = Config.BaseGameDir;
-
-                m_ModManager.CheckForDownloadedMods();
-                m_ModManager.CheckForAppliedMods();
-
-                RefreshFoundModsList();
-                RefreshAppliedModsList();
-
-                if (!m_ModManager.IsGameModded)
-                {
-                    m_ModManager.BackupBaseGame();
-                }
-            }
-
-            SaveConfigFile();
+            m_Cache_SelectedMods = new();
+            m_Controller = new(this);
 
 
 
         }
 
 
+        public void NotifyModsFolderChanged()
+        {
+            if (m_ModsFolderChangesNotified)
+                return;
 
-        private void SelectBaseDirectory()
+            if (InvokeRequired)
+            {
+                Invoke(NotifyModsFolderChanged);
+                return;
+            }
+
+            m_ModsFolderChangesNotified = true;
+
+            lbl_ModsFolderChanged.Visible = true;
+
+            btn_RefreshModList.ForeColor = Color.Red;
+            btn_RefreshModList.Font = new Font("Segoe UI", 9F, FontStyle.Bold, GraphicsUnit.Point);
+        }
+
+        public void ClearModsFolderChangesNotification()
+        {
+            if (!m_ModsFolderChangesNotified)
+                return;
+
+            m_ModsFolderChangesNotified = false;
+
+            lbl_ModsFolderChanged.Visible = false;
+            btn_RefreshModList.ForeColor = Control.DefaultForeColor;
+            btn_RefreshModList.Font = Control.DefaultFont;
+        }
+
+
+        #region Helpers
+        public enum PromptResult_
+        {
+            OK,
+            OK_DirChanged,
+            OK_NoDirChanges,
+            UnknownError,
+            UserCancelled,
+            InvalidExecutableLocation
+        }
+
+        public PromptResult_ PromptSelectGameExecutable()
         {
             FileDialog dialog = new OpenFileDialog()
             {
                 AddExtension = true,
                 Filter = "RB Executable|Reality Break.exe",
-                //InitialDirectory = initialDir,
             };
 
-            //string initialDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + "Low", "Element Games", "Reality Break");
-
-
-            DialogResult result = dialog.ShowDialog();
+            DialogResult result = dialog.ShowDialog(this);
             if (result == DialogResult.Cancel)
-            {
-
-            }
+                return PromptResult_.UserCancelled;
 
             string fullname = dialog.FileName;
-            if (fullname != string.Empty)
+            if (fullname == string.Empty)
+                return PromptResult_.UnknownError;
+
+            string? path = Path.GetDirectoryName(fullname);
+            if (path == null)
+                return PromptResult_.InvalidExecutableLocation;
+
+            if (!File.Exists(path + "/GameAssembly.dll"))
+                return PromptResult_.InvalidExecutableLocation;
+
+            if (Config.BaseGameDir == string.Empty)
             {
-                string? path = Path.GetDirectoryName(fullname);
-                if (path == null)
-                {
-                    throw new NotImplementedException();
-                }
-
-
                 Config.BaseGameDir = path;
-                //m_TbBaseGameDir.Invoke(() => m_TbBaseGameDir.Text = fullname);
+                return PromptResult_.OK;
             }
+
+            if (Config.BaseGameDir != path)
+            {
+                Config.BaseGameDir = path;
+                return PromptResult_.OK_DirChanged;
+            }
+
+            return PromptResult_.OK_NoDirChanges;
         }
 
-        #region Config File
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <returns><c>false</c> if the config file does not exist, or config couldn't be read.</returns>
-        private bool ReadConfigFile()
+        private void DoRefresh()
         {
-            if (!File.Exists(c_ConfigFilename))
-            {
-                StreamWriter stream = File.CreateText(c_ConfigFilename);
-                stream.Close();
-                return false;
-            }
+            Console.WriteLine("\r\n===== Refresh =====");
 
-            string[] lines;
-            try
-            {
-                lines = File.ReadAllLines(c_ConfigFilename);
-            }
-            catch (Exception _ex)
-            {
-                Console.WriteLine("Couldn't open config file: " + _ex);
-                return false;
-            }
+            CacheSelectedModsList();
 
-            if (lines.Length == 0)
-                return false;
+            RevertControlsToDefaultState();
+            m_Controller.CancelOperationInProgress(true);
 
-            foreach (string line in lines)
-            {
-                int commentPos = line.IndexOf("#");
-                if (commentPos == 0)
-                    continue;
-                if (commentPos == -1)
-                    commentPos = line.Length;
+            m_Controller.InitializeModManager();
+            PopulateControlsRightAfterModManagerInitialized();
 
-                int pos = line.IndexOf('=');
-                if (pos == -1)
-                    continue;
+            ClearModsFolderChangesNotification();
 
-                if (commentPos < pos)
-                    continue;
+            RestoreCachedSelectedModsList();
 
-                // ==========
-                string key = line[0..pos];
-                string value = line[(pos + 1)..commentPos];
-
-                if (key == "BaseGameDir")
-                {
-                    Config.BaseGameDir = value;
-                }
-
-
-            }
-
-
-
-
-            return true;
+            ActiveControl = null;
         }
-
-        private bool SaveConfigFile()
-        {
-            StreamWriter stream;
-
-            try
-            {
-                stream = new StreamWriter(File.Open(c_ConfigFilename, FileMode.Truncate, FileAccess.Write));
-            }
-            catch (Exception _ex)
-            {
-                Console.WriteLine("Couldn't open config file: " + _ex);
-                return false;
-            }
-
-            stream.WriteLine("BaseGameDir=" + Config.BaseGameDir);
-
-            stream.Flush();
-            stream.Close();
-
-            return true;
-        }
-        #endregion
 
         private async void DoRestoreBaseGame()
         {
+            if (m_Controller.ModManager == null || m_Controller.IsBaseGameRestoringInProgress)
+                return;
+
+            if (m_Controller.ModManager.GetLoadedMods().Count == 0)
+                return;
+
             lbl_Status.Text = "Restoring Base Game..";
             lbl_Status.Visible = true;
 
-            await Task.Run(() => m_ModManager?.RestoreBaseGame());
+            await Task.Run(() => m_Controller.DoRestoreBaseGame(CallbackUpdateStatusLabel));
 
             RefreshFoundModsList();
             RefreshAppliedModsList();
 
+            dgv_FoundMods.Enabled = true;
+            dgv_SelectedMods.Enabled = true;
+
+            btn_RestoreBaseGame.Enabled = false;
+
             lbl_Status.Text = "Base Game restored.";
+
+            ActiveControl = null;
+
             await Task.Delay(2000);
             lbl_Status.Visible = false;
-
         }
 
-        private async Task DoApplyMods(List<int> _selectedMods, CancellationToken _cancellationToken)
+        private async void DoApplyMods(List<int> _selectedMods)
         {
+            if (m_Controller.ModManager == null)
+                return;
+
+            btn_ApplyMod.Text = "Cancel (NO Rollback!)";
+
             lbl_Status.Text = "";
             lbl_Status.Visible = true;
+
             try
             {
-                await Task.Run(() => m_ModManager?.ApplyMods(_selectedMods, UpdateProgressLabel, _cancellationToken));
+                await Task.Run(() => m_Controller.DoApplyMods(_selectedMods, CallbackUpdateStatusLabel));
+                //await Task.Run(() => m_Coordinator.ModManager.ApplyMods(_selectedMods, CallbackUpdateStatusLabel, cancellationToken), cancellationToken);
 
                 string text = lbl_Status.Text[0..(lbl_Status.Text.Length - 2)];
                 lbl_Status.Text += " (Done).";
             }
             catch (OperationCanceledException)
             {
-                Console.WriteLine("    Cancelled.");
                 lbl_Status.Text = "Cancelled.";
             }
 
+            btn_RestoreBaseGame.Enabled = true;
             btn_ApplyMod.Text = "Apply Selected Mod(s)";
 
             await Task.Delay(2000, CancellationToken.None);
@@ -213,112 +187,12 @@ namespace ParallelReality
 
         private async void DoCancelApplyMods()
         {
-            lbl_Status.Text = "Cancelled.";
+            m_Controller.CancelOperationInProgress();
+
+            btn_ApplyMod.Text = "Apply Selected Mod(s)";
+
             await Task.Delay(2000);
             lbl_Status.Visible = false;
-        }
-
-        private void RefreshFoundModsList()
-        {
-            if (m_ModManager == null || m_ModManager.BaseGameDir == string.Empty)
-                return;
-
-            lbl_FoundModsCount.Text = m_ModManager.FoundMods.Count.ToString();
-
-            dgv_FoundMod.ClearSelection();
-            dgv_FoundMod.Rows.Clear();
-
-            for (int i = 0; i < m_ModManager.FoundMods.Count; ++i)
-            {
-                ModInfo mod = m_ModManager.FoundMods[i];
-                if (mod.LoadedOrder != -1)
-                    continue;
-
-                dynamic d = new dynamic[] {
-                    mod.Index,
-                    mod.Name,
-                    mod.Author,
-                    mod.ModVersion,
-                    mod.GameVersion,
-                };
-                dgv_FoundMod.Rows.Add(d);
-            }
-
-            dgv_FoundMod.ClearSelection();
-
-        }
-
-        private void RefreshAppliedModsList()
-        {
-            if (m_ModManager == null || m_ModManager.BaseGameDir == string.Empty)
-                return;
-
-            List<ModInfo> modList = m_ModManager.GetLoadedMods();
-            //lbl_FoundModsCount.Text = m_ModManager.FoundMods.Count.ToString();
-
-            dgv_SelectedMod.ClearSelection();
-            dgv_SelectedMod.Rows.Clear();
-
-            for (int i = 0; i < modList.Count; ++i)
-            {
-                ModInfo mod = modList[i];
-
-                dynamic d = new dynamic[] {
-                    mod.Index,
-                    mod.Name,
-                    mod.Author,
-                    mod.ModVersion,
-                    mod.GameVersion,
-                };
-                dgv_SelectedMod.Rows.Add(d);
-            }
-
-            dgv_SelectedMod.ClearSelection();
-        }
-
-        private void AddBaseGameEntryToList()
-        {
-
-        }
-
-        private void RefreshModInfoDisplay(ModInfo _mod)
-        {
-            btn_OpenReadme.Invoke(() => btn_OpenReadme.Enabled = _mod.ReadmeFileFullname != string.Empty);
-
-            lbl_ModName.Invoke(() => lbl_ModName.Text = _mod.Name);
-            lbl_Author.Invoke(() => lbl_Author.Text = _mod.Author);
-            lbl_ModVer.Invoke(() => lbl_ModVer.Text = _mod.ModVersion);
-            lbl_GameVer.Invoke(() => lbl_GameVer.Text = _mod.GameVersion);
-
-            string text = "";
-            foreach (string file in _mod.ModifiedFiles)
-            {
-                text += "    " + file + "\r\n";
-            }
-
-            tb_ModFiles.Invoke(() => tb_ModFiles.Text = text);
-
-
-        }
-
-        // return true if the click success;
-        private bool HandlerWhenClickOnList(DataGridView _dgv)
-        {
-            if (_dgv.SelectedRows.Count == 0)
-                return false;
-
-            var cells = _dgv.SelectedRows[0].Cells;
-            if (cells.Count == 0)
-                return false;
-
-            if (m_ModManager == null)
-                return true;
-
-            int index = (int)cells[0].Value;
-            ModInfo mod = m_ModManager.FoundMods[index];
-            RefreshModInfoDisplay(mod);
-
-            return true;
         }
 
         private void MoveModUp(DataGridView _dgv)
@@ -354,6 +228,78 @@ namespace ParallelReality
             _dgv.ClearSelection();
             _dgv.Rows[selectedRow + 1].Selected = true;
         }
+        #endregion
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        //private async Task DoApplyMods(List<int> _selectedMods, CancellationToken _cancellationToken)
+        //{
+        //    lbl_Status.Text = "";
+        //    lbl_Status.Visible = true;
+
+        //    try
+        //    {
+        //        await Task.Run(() => m_ModManager?.ApplyMods(_selectedMods, UpdateProgressLabel, _cancellationToken), _cancellationToken);
+
+        //        string text = lbl_Status.Text[0..(lbl_Status.Text.Length - 2)];
+        //        lbl_Status.Text += " (Done).";
+        //    }
+        //    catch (OperationCanceledException)
+        //    {
+        //        Console.WriteLine("    Cancelled.");
+        //        lbl_Status.Text = "Cancelled.";
+        //    }
+
+        //    btn_ApplyMod.Text = "Apply Selected Mod(s)";
+
+        //    await Task.Delay(2000, CancellationToken.None);
+        //    lbl_Status.Visible = false;
+        //}
+
+
+
+        private void AddBaseGameEntryToList()
+        {
+
+        }
+
+        private void ClearSelectionOnList(DataGridView _dgv)
+        {
+            _dgv.ClearSelection();
+
+
+
+
+
+
+        }
+
 
         private void UpdateProgressLabel(int _copiedFiles, int _totalFiles)
         {
@@ -374,10 +320,23 @@ namespace ParallelReality
         private const string c_ConfigFilename = "config.ini";
 
 
-        private ModManager? m_ModManager = null;
 
-        private CancellationTokenSource m_ApplyModsCancellationToken;
-        //private readonly System.Windows.Forms.Timer m_StatusUpdateTimer = new System.Windows.Forms.Timer();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -390,306 +349,319 @@ namespace ParallelReality
         // ==================================================
         #region Event Handler
 
-        #region Button
-        #endregion
-
-        #region DataGridView
-        private void dgv_FoundMod_ColumnHeaderMouseClick(object sender, DataGridViewCellMouseEventArgs e)
-        {
-            dgv_FoundMod.ClearSelection();
-        }
-
-        private void dgv_FoundMod_CellClick(object sender, DataGridViewCellEventArgs e)
-        {
-            if (e.RowIndex < 0 || e.RowIndex >= dgv_FoundMod.Rows.Count)
-            {
-                dgv_FoundMod.ClearSelection();
-                return;
-            }
-
-            if (HandlerWhenClickOnList(dgv_FoundMod))
-            {
-                dgv_SelectedMod.ClearSelection();
-            }
-        }
-
-        private void dgv_FoundMod_CellDoubleClick(object sender, DataGridViewCellEventArgs e)
-        {
-            if (e.RowIndex < 0 || e.RowIndex >= dgv_FoundMod.Rows.Count)
-            {
-                dgv_FoundMod.ClearSelection();
-                return;
-            }
-
-            _ = MoveItemBetweenDGV(dgv_FoundMod, dgv_SelectedMod);
-        }
-
-        private void dgv_SelectedMod_ColumnHeaderMouseClick(object sender, DataGridViewCellMouseEventArgs e)
-        {
-            dgv_SelectedMod.ClearSelection();
-        }
-
-        private void dgv_SelectedMod_CellClick(object sender, DataGridViewCellEventArgs e)
-        {
-            if (e.RowIndex < 0 || e.RowIndex >= dgv_SelectedMod.Rows.Count)
-            {
-                dgv_SelectedMod.ClearSelection();
-                return;
-            }
-
-            if (HandlerWhenClickOnList(dgv_SelectedMod))
-            {
-                dgv_FoundMod.ClearSelection();
-            }
-        }
-
-        private void dgv_SelectedMod_CellDoubleClick(object sender, DataGridViewCellEventArgs e)
-        {
-            if (e.RowIndex < 0 || e.RowIndex >= dgv_SelectedMod.Rows.Count)
-            {
-                dgv_SelectedMod.ClearSelection();
-                return;
-            }
-
-            _ = MoveItemBetweenDGV(dgv_SelectedMod, dgv_FoundMod);
-        }
-        #endregion
-
-
-        #endregion
-
-
-
         private void Form1_Shown(object sender, EventArgs e)
         {
-            dgv_FoundMod.ClearSelection();
-            dgv_SelectedMod.ClearSelection();
+            RevertControlsToDefaultState();
 
-            btn_OpenReadme.Enabled = false;
-            lbl_Status.Visible = false;
+            if (!m_Controller.InitialCheckBaseGameDir())
+                return;
 
-            ActiveControl = null;
+            // =====
+            m_Controller.InitializeModManager();
+
+            m_TbBaseGameDir.Text = Config.BaseGameDir;
+            PopulateControlsRightAfterModManagerInitialized();
+        }
+
+        private void Form1_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            m_Controller.Shutdown();
+        }
+
+        #region Button
+        private void btn_SelectDir_Click(object sender, EventArgs e)
+        {
+            PromptResult_ result = PromptSelectGameExecutable();
+            if (Config.BaseGameDir == string.Empty)
+            {
+                m_Controller.CancelOperationInProgress(true);
+                RevertControlsToDefaultState();
+                return;
+            }
+
+            if (result != PromptResult_.OK && result != PromptResult_.OK_DirChanged)
+            {
+                return;
+            }
+
+            m_Controller.CancelOperationInProgress(true);
+
+            Config.SaveConfigFile();
+
+            m_Controller.InitializeModManager();
+
+            m_TbBaseGameDir.Text = Config.BaseGameDir;
+            PopulateControlsRightAfterModManagerInitialized();
         }
 
         private void btn_RefreshModList_Click(object sender, EventArgs e)
         {
-            if (m_ModManager == null)
-                return;
-
-            m_ModManager.CheckForDownloadedMods();
-            m_ModManager.CheckForAppliedMods();
-
-            RefreshFoundModsList();
-            RefreshAppliedModsList();
-        }
-
-        private void btn_SelectDir_Click(object sender, EventArgs e)
-        {
-            SelectBaseDirectory();
-            SaveConfigFile();
-
-            if (m_ModManager == null)
-                return;
-
-            m_ModManager.BaseGameDir = Config.BaseGameDir;
+            DoRefresh();
         }
 
         private void btn_OpenReadme_Click(object sender, EventArgs e)
         {
-            if (m_ModManager == null)
+            if (m_Controller.ModManager == null)
                 return;
 
             int index = -1;
-            if (dgv_FoundMod.SelectedRows.Count != 0)
+            if (dgv_FoundMods.SelectedRows.Count != 0)
             {
-                int selectedRow = dgv_FoundMod.SelectedRows[0].Index;
-                index = (int)dgv_FoundMod.Rows[selectedRow].Cells[0].Value;
+                int selectedRow = dgv_FoundMods.SelectedRows[0].Index;
+                index = (int)dgv_FoundMods.Rows[selectedRow].Cells[0].Value;
             }
-            else if (dgv_SelectedMod.SelectedRows.Count != 0)
+            if (dgv_SelectedMods.SelectedRows.Count != 0)
             {
-                int selectedRow = dgv_SelectedMod.SelectedRows[0].Index;
-                index = (int)dgv_SelectedMod.Rows[selectedRow].Cells[0].Value;
+                int selectedRow = dgv_SelectedMods.SelectedRows[0].Index;
+                index = (int)dgv_SelectedMods.Rows[selectedRow].Cells[0].Value;
             }
 
             if (index == -1)
                 return;
 
-            ModInfo mod = m_ModManager.FoundMods[index];
-            if (mod.ReadmeFileFullname != string.Empty)
-            {
-                Process? proc = Process.Start(new ProcessStartInfo()
-                {
-                    UseShellExecute = true,
-                    FileName = mod.ReadmeFileFullname,
-                });
-            }
-        }
-
-        private void btn_RestoreBaseGame_Click(object sender, EventArgs e)
-        {
-            if (m_ModManager == null)
+            ModInfo mod = m_Controller.ModManager.FoundMods[index];
+            if (mod.ReadmeFileFullname == string.Empty)
                 return;
 
+            Process? proc = Process.Start(new ProcessStartInfo()
+            {
+                UseShellExecute = true,
+                FileName = mod.ReadmeFileFullname,
+            });
+        }
+        private void btn_RestoreBaseGame_Click(object sender, EventArgs e)
+        {
             DoRestoreBaseGame();
         }
 
-        private async void btn_ApplyMod_Click(object sender, EventArgs e)
+        private void btn_ApplyMods_Click(object sender, EventArgs e)
         {
-            if (m_ModManager == null)
+            if (m_Controller.ModManager == null || m_Controller.IsBaseGameRestoringInProgress)
                 return;
 
-            if (m_ModManager.IsApplyInProgress)
+            if (m_Controller.IsModsApplyingInProgress)
             {
-                m_ApplyModsCancellationToken.Cancel();
-
                 DoCancelApplyMods();
-                btn_ApplyMod.Text = "Apply Selected Mod(s)";
+                return;
             }
-            else
+
+            if (m_ModsFolderChangesNotified)
             {
-                List<int> selectedMods = new();
-                for (int i = 0; i < dgv_SelectedMod.Rows.Count; ++i)
-                {
-                    int index = (int)dgv_SelectedMod.Rows[i].Cells[0].Value;
+                string caption = "Mods Folder Changed";
+                string message = "Mods folder has changed since the last refresh.\n\n" +
+                    "Click Abort to abort.\n" +
+                    "Click Retry to refresh mods list now.\n" +
+                    "Click Ignore to ignore and apply mods anyway (and potentially break things).\n\n" +
+                    "If I have time I will redesign this message box.";
+                DialogResult result = MessageBox.Show(this, message, caption, MessageBoxButtons.AbortRetryIgnore);
 
-                    selectedMods.Add(index);
+                if (result == DialogResult.Abort)
+                    return;
+
+                if (result == DialogResult.Retry)
+                {
+                    DoRefresh();
+                    return;
                 }
 
-                if (selectedMods.Count > 0)
+                if (result == DialogResult.Ignore)
                 {
-                    m_ApplyModsCancellationToken = new CancellationTokenSource();
-
-                    btn_ApplyMod.Text = "Cancel (NO Rollback!)";
-                    await DoApplyMods(selectedMods, m_ApplyModsCancellationToken.Token);
-                    m_ApplyModsCancellationToken.Dispose();
-                }
-                else
-                {
-                    Console.WriteLine("No mod selected. Restore to Base Game instead.");
-                    DoRestoreBaseGame();
+                    // do nothing;
                 }
             }
-        }
 
-        private bool MoveItemBetweenDGV(DataGridView _src, DataGridView _dst)
-        {
-            if (_src.SelectedRows.Count == 0)
-                return false;
-
-            int selected = _src.SelectedRows[0].Index;
-            if (selected < 0 || selected > _src.Rows.Count)
-                return false;
-
-            var cells = _src.SelectedRows[0].Cells;
-            if (cells == null || cells.Count == 0)
-                return false;
-
-            dynamic d = new dynamic[]
+            // =====
+            List<int> selectedMods = new();
+            foreach (DataGridViewRow row in dgv_SelectedMods.Rows)
             {
-                cells[0].Value,
-                cells[1].Value,
-                cells[2].Value,
-                cells[3].Value,
-                cells[4].Value,
-            };
-            _dst.Rows.Add(d);
-            _dst.Rows[^1].Cells[0].Selected = true;
+                if (row.Cells.Count == 0)
+                    continue;
 
-            _src.Rows.RemoveAt(selected);
-            _src.ClearSelection();
+                int index = (int)row.Cells[0].Value;
+                selectedMods.Add(index);
+            }
 
-            return true;
+            if (selectedMods.Count == 0)
+            {
+                Console.WriteLine("No mod selected. Restore to Base Game instead.");
+                DoRestoreBaseGame();
+                return;
+            }
+
+            DoApplyMods(selectedMods);
         }
 
         private void btn_Select_Click(object sender, EventArgs e)
         {
-            if (m_ModManager == null)
-                return;
+            _ = MoveItemBetweenDGV(dgv_FoundMods, dgv_SelectedMods);
+            m_FoundModsListSelectingRow = -1;
 
-            _ = MoveItemBetweenDGV(dgv_FoundMod, dgv_SelectedMod);
+            UpdateApplyModsButton();
 
-            //if (dgv_ModsList.SelectedRows.Count == 0)
-            //    return;
+            UpdateMoveUpDownButtons();
 
-            //int selectedRow = dgv_ModsList.SelectedRows[0].Index;
-            //if (selectedRow < 0 || selectedRow > dgv_ModsList.Rows.Count)
-            //    return;
-
-            //var cells = dgv_ModsList.SelectedRows[0].Cells;
-            //if (cells == null || cells.Count == 0)
-            //    return;
-
-            //dynamic d = new dynamic[]
-            //{
-            //    cells[0].Value,
-            //    cells[1].Value,
-            //    cells[2].Value,
-            //    cells[3].Value,
-            //    cells[4].Value,
-            //};
-            //dgv_SelectedMod.Rows.Add(d);
-            //dgv_SelectedMod.Rows[dgv_SelectedMod.Rows.Count - 1].Cells[0].Selected = true;
-
-            //dgv_ModsList.Rows.RemoveAt(selectedRow);
-            //dgv_ModsList.ClearSelection();
+            btn_Select.Enabled = false;
+            btn_Unselect.Enabled = true;
         }
 
         private void btn_Unselect_Click(object sender, EventArgs e)
         {
-            if (m_ModManager == null)
-                return;
+            _ = MoveItemBetweenDGV(dgv_SelectedMods, dgv_FoundMods);
+            m_SelectedModsListSelectingRow = -1;
 
-            _ = MoveItemBetweenDGV(dgv_SelectedMod, dgv_FoundMod);
+            UpdateApplyModsButton();
 
-            //if (dgv_SelectedMod.SelectedRows.Count == 0)
-            //    return;
+            UpdateMoveUpDownButtons();
 
-            //int selectedRow = dgv_SelectedMod.SelectedRows[0].Index;
-            //if (selectedRow < 0 || selectedRow > dgv_SelectedMod.Rows.Count)
-            //    return;
-
-            //var cells = dgv_SelectedMod.SelectedRows[0].Cells;
-            //if (cells == null || cells.Count == 0)
-            //    return;
-
-            //dynamic d = new dynamic[]
-            //{
-            //    cells[0].Value,
-            //    cells[1].Value,
-            //    cells[2].Value,
-            //    cells[3].Value,
-            //    cells[4].Value,
-            //};
-            //dgv_ModsList.Rows.Add(d);
-            //dgv_ModsList.Rows[dgv_ModsList.Rows.Count - 1].Cells[0].Selected = true;
-
-            //dgv_SelectedMod.Rows.RemoveAt(selectedRow);
-            //dgv_SelectedMod.ClearSelection();
+            btn_Select.Enabled = true;
+            btn_Unselect.Enabled = false;
         }
 
         private void btn_MoveUp_Click(object sender, EventArgs e)
         {
-            if (m_ModManager == null)
-                return;
-
-            //MoveModUp(dgv_ModsList);
-            MoveModUp(dgv_SelectedMod);
+            MoveModUp(dgv_SelectedMods);
         }
 
         private void btn_MoveDown_Click(object sender, EventArgs e)
         {
-            if (m_ModManager == null)
-                return;
+            MoveModDown(dgv_SelectedMods);
+        }
+        #endregion // Button
 
-            //MoveModDown(dgv_ModsList);
-            MoveModDown(dgv_SelectedMod);
+        #region DataGridView
+        private void dgv_FoundMods_ColumnHeaderMouseClick(object sender, DataGridViewCellMouseEventArgs e)
+        {
+            if (m_FoundModsListSelectingRow == -1)
+            {
+                dgv_FoundMods.ClearSelection();
+            }
+
+            UpdateMoveUpDownButtons();
         }
 
-    }
+        private void dgv_FoundMods_CellClick(object sender, DataGridViewCellEventArgs e)
+        {
+            if (e.RowIndex < 0 || e.RowIndex >= dgv_FoundMods.Rows.Count)
+                return;
 
-    internal static class Config
-    {
-        public static string BaseGameDir = string.Empty;
+            m_FoundModsListSelectingRow = e.RowIndex;
+            if (HandlerWhenClickOnList(dgv_FoundMods))
+            {
+                dgv_SelectedMods.ClearSelection();
+                m_SelectedModsListSelectingRow = -1;
+
+                UpdateMoveUpDownButtons();
+
+                btn_Select.Enabled = true;
+                btn_Unselect.Enabled = false;
+            }
+        }
+
+        private void dgv_FoundMods_CellDoubleClick(object sender, DataGridViewCellEventArgs e)
+        {
+            if (e.RowIndex < 0 || e.RowIndex >= dgv_FoundMods.Rows.Count)
+                return;
+
+            _ = MoveItemBetweenDGV(dgv_FoundMods, dgv_SelectedMods);
+            m_FoundModsListSelectingRow = -1;
+
+            UpdateApplyModsButton();
+
+            UpdateMoveUpDownButtons();
+
+            btn_Select.Enabled = false;
+            btn_Unselect.Enabled = true;
+        }
+
+        private void dgv_SelectedMods_ColumnHeaderMouseClick(object sender, DataGridViewCellMouseEventArgs e)
+        {
+            if (m_SelectedModsListSelectingRow == -1)
+            {
+                dgv_SelectedMods.ClearSelection();
+            }
+
+            UpdateMoveUpDownButtons();
+        }
+
+        private void dgv_SelectedMods_CellClick(object sender, DataGridViewCellEventArgs e)
+        {
+            if (e.RowIndex < 0 || e.RowIndex >= dgv_SelectedMods.Rows.Count)
+                return;
+
+            m_SelectedModsListSelectingRow = e.RowIndex;
+            if (HandlerWhenClickOnList(dgv_SelectedMods))
+            {
+                dgv_FoundMods.ClearSelection();
+                m_FoundModsListSelectingRow = -1;
+
+                UpdateMoveUpDownButtons();
+
+                btn_Select.Enabled = false;
+                btn_Unselect.Enabled = true;
+            }
+        }
+
+        private void dgv_SelectedMods_CellDoubleClick(object sender, DataGridViewCellEventArgs e)
+        {
+            if (e.RowIndex < 0 || e.RowIndex >= dgv_SelectedMods.Rows.Count)
+                return;
+
+            _ = MoveItemBetweenDGV(dgv_SelectedMods, dgv_FoundMods);
+            m_SelectedModsListSelectingRow = -1;
+
+            UpdateApplyModsButton();
+
+            UpdateMoveUpDownButtons();
+
+            btn_Select.Enabled = true;
+            btn_Unselect.Enabled = false;
+        }
+        #endregion // DataGridView
+
+
+
+
+
+
+        #endregion
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        private void linkLabel1_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
+        {
+            Process.Start(new ProcessStartInfo()
+            {
+                FileName = "https://discord.com/channels/639225872305487907/1361835527262699580/1361835527262699580",
+                UseShellExecute = true,
+            });
+
+        }
+
+
+        private readonly List<ModInfoSimple> m_Cache_SelectedMods;
+
+        private bool m_ModsFolderChangesNotified = false;
     }
 
 }
