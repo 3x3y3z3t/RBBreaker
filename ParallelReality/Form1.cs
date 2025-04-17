@@ -1,13 +1,11 @@
 /*  Form1.cs
- *  Version 1.6 (2025.04.16)
+ *  Version 1.7 (2025.04.17)
  *  
  *  Contributor
  *      Arime-chan (Author)
  */
 
 using System.Diagnostics;
-using System.IO;
-using System.Threading;
 
 namespace ParallelReality
 {
@@ -56,6 +54,7 @@ namespace ParallelReality
             btn_RefreshModList.ForeColor = Control.DefaultForeColor;
             btn_RefreshModList.Font = Control.DefaultFont;
         }
+
 
 
         #region Helpers
@@ -231,6 +230,56 @@ namespace ParallelReality
         #endregion
 
 
+        private void NotifyModsOverrideEachOther()
+        {
+            tb_CollisionList.Text = string.Empty;
+
+            if (m_Controller.ModManager == null || dgv_SelectedMods.Rows.Count < 2)
+                return;
+
+
+            List<ModInfo> selectedMods = new(dgv_SelectedMods.Rows.Count);
+            foreach (DataGridViewRow row in dgv_SelectedMods.Rows)
+            {
+                var cells = row.Cells;
+                if (cells.Count == 0)
+                    continue;
+
+                int id = (int)cells[0].Value;
+                ModInfo? mod = m_Controller.ModManager.GetModWithId(id);
+                if (mod != null)
+                    selectedMods.Add(mod);
+            }
+
+            // =====
+            List<Tuple<ModInfo, ModInfo>> overridenPairs = new();
+            for (int i = 1; i < selectedMods.Count; ++i)
+            {
+                ModInfo mod = selectedMods[i];
+                var overriden = mod.GetOrComputeListOfModsBeingOverriden(m_Controller.ModManager.FilesToModMap);
+
+                for (int j = 0; j < i; ++j)
+                {
+                    if (overriden.Contains(selectedMods[j].ModId))
+                    {
+                        overridenPairs.Add(new(mod, selectedMods[j]));
+                    }
+                }
+            }
+
+            // =====
+            string msg = "";
+            foreach (var pair in overridenPairs)
+            {
+                string mod1Info = "'" + pair.Item1.Name + "' (Id = " + pair.Item1.ModId + ")";
+                string mod2Info = "'" + pair.Item2.Name + "' (Id = " + pair.Item2.ModId + ")";
+
+
+                msg += "    Mod " + mod1Info + " overrides mod " + mod2Info + "\r\n";
+            }
+
+            tb_CollisionList.Text = msg;
+        }
 
 
 
@@ -616,6 +665,22 @@ namespace ParallelReality
             btn_Select.Enabled = true;
             btn_Unselect.Enabled = false;
         }
+
+        private void dgv_SelectedMods_RowsAdded(object sender, DataGridViewRowsAddedEventArgs e)
+        {
+            if (m_SelectedModsListPauseRowChangesEvent)
+                return;
+
+            NotifyModsOverrideEachOther();
+        }
+
+        private void dgv_SelectedMods_RowsRemoved(object sender, DataGridViewRowsRemovedEventArgs e)
+        {
+            if (m_SelectedModsListPauseRowChangesEvent)
+                return;
+
+            NotifyModsOverrideEachOther();
+        }
         #endregion // DataGridView
 
 
@@ -662,6 +727,7 @@ namespace ParallelReality
         private readonly List<ModInfoSimple> m_Cache_SelectedMods;
 
         private bool m_ModsFolderChangesNotified = false;
+
     }
 
 }

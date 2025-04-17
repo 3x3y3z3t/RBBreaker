@@ -7,6 +7,30 @@
     <UseWindowsForms>true</UseWindowsForms>
     <ImplicitUsings>enable</ImplicitUsings>
     <PublishSingleFile>true</PublishSingleFile>
+    <Title>Parallel Reality (Reality Break mod loader)</Title>
+    <Authors>Arime-chan</Authors>
+    <Company>_</Company>
+    <RepositoryUrl>https://github.com/3x3y3z3t/RBBreaker/tree/master/ParallelReality</RepositoryUrl>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <FileVersion>1.4.0</FileVersion>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Update="README.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+  </ItemGroup>
+
+  <PropertyGroup>
+    <OutputFileExt Condition="'$(RuntimeIdentifier)' != '' and $([System.String]::Copy($(RuntimeIdentifier)).StartsWith('win'))">.exe</OutputFileExt>
+  </PropertyGroup>
+  
+  <Target Name="Test" AfterTargets="Publish">
+
+    <Move SourceFiles="$(PublishDir)$(TargetName)$(OutputFileExt)"
+          DestinationFiles="$(PublishDir)$(TargetName)_$(RuntimeIdentifier)_v$(FileVersion)$(OutputFileExt)" />
+
+  </Target>
 
 </Project>

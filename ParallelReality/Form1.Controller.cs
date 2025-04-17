@@ -1,5 +1,5 @@
 /*  Form1.Controller.cs
- *  Version 1.0 (2025.04.16)
+ *  Version 1.1 (2025.04.17)
  *  
  *  Contributor
  *      Arime-chan (Author)
@@ -100,8 +100,7 @@ namespace ParallelReality
             if (Config.BaseGameDir == string.Empty)
                 return;
 
-            m_ModManager = new();
-            m_ModManager.BaseGameDir = Config.BaseGameDir;
+            m_ModManager = new(Config.BaseGameDir);
 
             m_ModManager.CheckForDownloadedMods();
             //m_ModManager.CheckForAppliedMods();

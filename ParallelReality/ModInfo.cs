@@ -1,17 +1,12 @@
 /*  ModInfo.cs
- *  Version 1.3 (2025.04.16)
+ *  Version 1.4 (2025.04.17)
  *  
  *  Contributor
  *      Arime-chan (Author)
  */
-using System;
-using System.Collections.Generic;
-using System.Diagnostics.Contracts;
-using System.Linq;
+
 using System.Security.Cryptography;
-using System.Security.Policy;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace ParallelReality
 {
@@ -53,7 +48,9 @@ namespace ParallelReality
         public string Author { get; private set; } = string.Empty;
         public string ModVersion { get; private set; } = string.Empty;
         public string GameVersion { get; private set; } = string.Empty;
-        public byte[] Hash { get => m_Hash; }
+        public string Url => m_Url;
+
+        public byte[] Hash => m_Hash;
 
         public int ModId { get; private set; } = -1;
         public int LoadedOrder { get; set; } = -1;
@@ -118,7 +115,7 @@ namespace ParallelReality
         //}
 
 
-        public HashSet<int> GetOrComputeListOfModsOverriden(Dictionary<string, List<int>> _fileToModsMap)
+        public HashSet<int> GetOrComputeListOfModsBeingOverriden(Dictionary<string, List<int>> _fileToModsMap)
         {
             if (m_OverriddenMods != null)
                 return m_OverriddenMods;
@@ -157,21 +154,25 @@ namespace ParallelReality
             string[] lines = File.ReadAllLines(_fullname);
             foreach (string line in lines)
             {
-                if (line.StartsWith("Author") || line.StartsWith("Authors"))
+                if (line.StartsWith("Author:") || line.StartsWith("Authors:"))
                 {
                     Author = GetValueFromLine(line);
                 }
-                else if (line.StartsWith("Name"))
+                else if (line.StartsWith("Name:"))
                 {
                     Name = GetValueFromLine(line);
                 }
-                else if (line.StartsWith("ModVersion"))
+                else if (line.StartsWith("ModVersion:"))
                 {
                     ModVersion = GetValueFromLine(line);
                 }
-                else if (line.StartsWith("GameVersion"))
+                else if (line.StartsWith("GameVersion:"))
                 {
                     GameVersion = GetValueFromLine(line);
+                }
+                else if (line.StartsWith("URL:"))
+                {
+                    m_Url = GetValueFromLine(line);
                 }
 
                 
@@ -222,6 +223,9 @@ namespace ParallelReality
 
             return list;
         }
+
+
+        private string m_Url = string.Empty;
 
 
         private HashSet<int>? m_OverriddenMods = null;

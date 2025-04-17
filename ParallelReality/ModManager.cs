@@ -1,19 +1,12 @@
 /*  ModManager.cs
- *  Version 1.5 (2025.04.16)
+ *  Version 1.6 (2025.04.17)
  *  
  *  Contributor
  *      Arime-chan (Author)
  */
 
-#define DEV
+//#define DEV
 
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Security.Cryptography;
-using System.Text;
-using System.Threading.Tasks;
 using ExShared;
 
 namespace ParallelReality
@@ -37,19 +30,9 @@ namespace ParallelReality
         public static bool VerboseLog = true;
 
 
-        public string BaseGameDir
-        {
-            get => m_BaseGameDir;
-            set
-            {
-                m_BaseGameDir = value;
-                m_ModdedFlagFile = m_BaseGameDir + "/modded.txt";
+        public string BaseGameDir => m_BaseGameDir;
 
-                ModDir = value + "/Mods";
-            }
-        }
-
-        public string ModDir { get; private set; } = string.Empty;
+        public string ModDir => m_ModDir;
 
         public ModManagerState State { get => m_State; }
 
@@ -59,15 +42,16 @@ namespace ParallelReality
 
         public List<ModInfo> FoundMods { get; private set; }
         public List<int> SelectedMods { get; private set; }
+        public Dictionary<string, List<int>> FilesToModMap => m_FileToModsMap;
 
 
-        public ModManager()
-        {
-            FoundMods = new();
-            SelectedMods = new();
+        //public ModManager()
+        //{
+        //    FoundMods = new();
+        //    SelectedMods = new();
 
-            m_FileToModsMap = new();
-        }
+        //    m_FileToModsMap = new();
+        //}
 
         public ModManager(string _baseGameDir)
         {
@@ -177,7 +161,6 @@ namespace ParallelReality
                 msg += string.Format("| {0,4} | {1} | {2} | {3,4} |\r\n",
                     mod.ModId, mod.GetShortHash(), Utils.ClipString(mod.Name, 30),
                     loadedOrder);
-                // TODO: at this point LoadedOrder is not populated yet;
             }
 
             if (FoundMods.Count > 0 && VerboseLog)
@@ -188,52 +171,6 @@ namespace ParallelReality
 
             m_State = ModManagerState.Idle;
         }
-
-        //public void CheckForAppliedMods()
-        //{
-        //    //Console.WriteLine("                                                    ↑ " + 0 + " mods loaded");
-        //    List<ModInfoPrecheck> precheck = CheckForAppliedMod_Precheck();
-        //    if (precheck.Count == 0)
-        //        return;
-
-        //    List<ModInfo> loadedMods = new();
-        //    string[] lines = File.ReadAllLines(m_ModdedFlagFile);
-        //    foreach (string line in lines)
-        //    {
-        //        int pos = line.IndexOf('\t');
-        //        if (pos == -1 || pos + 9 > line.Length)
-        //            continue;
-
-        //        if (!int.TryParse(line[0..pos], out int order))
-        //            continue;
-
-        //        string hash = line[(pos + 1)..(pos + 9)];
-
-        //        string name = line[(pos + 1)..];
-
-        //        // ==========
-        //        foreach (var mod in FoundMods)
-        //        {
-        //            if (mod.GetShortHash() == hash)
-        //            {
-        //                mod.LoadedOrder = order;
-        //                loadedMods.Add(mod);
-        //                break;
-        //            }
-        //        }
-
-        //    }
-
-        //    if (precheck.Count > 0)
-        //    {
-        //        Console.WriteLine("                                                    ↑ " + precheck.Count + " mods loaded");
-        //    }
-        //    //Console.WriteLine("    In which, " + loadedMods.Count + " mods are already loaded.");
-        //    //foreach (var mod in loadedMods)
-        //    //{
-        //    //    Console.WriteLine("        '" + mod.Name + "' (Id = " + mod.ModId + ")");
-        //    //}
-        //}
 
         public void BackupBaseGame(bool _force = false)
         {
@@ -266,7 +203,7 @@ namespace ParallelReality
 
             m_State = ModManagerState.RestoringBaseGame;
 
-            //_callbackUpdateStatus("Deleting Modded files..");
+            DeleteAppliedModsFiles(_callbackUpdateStatus);
 
             _callbackUpdateStatus("Restoring Base Game files..");
 #if DEV
@@ -368,6 +305,52 @@ namespace ParallelReality
                 string text = "Applying mods: " + CopiesStatus.CopiedFiles + "/" + CopiesStatus.TotalFiles + " files copied.";
                 _callbackUpdateStatus(text);
             }
+        }
+
+        private void DeleteAppliedModsFiles(Action<string> _callbackUpdateStatus)
+        {
+            //_callbackUpdateStatus("Deleting Modded files..");
+
+            foreach (var mod in FoundMods)
+            {
+                if (mod.LoadedOrder == -1)
+                    continue;
+
+                CopiesStatus.TotalFiles += mod.ModFiles.Count;
+            }
+
+            foreach (var mod in FoundMods)
+            {
+                if (mod.LoadedOrder == -1)
+                    continue;
+
+                string modPath = mod.ModDir + "/" + STR_FOLDER_NAME_DATA + "/";
+                foreach (var file in mod.ModFiles)
+                {
+                    string srcName = modPath + file;
+
+#if DEV
+                    Thread.Sleep(500);
+                    ++CopiesStatus.CopiedFiles;
+#else
+                    if (File.Exists(srcName))
+                    {
+                        File.Delete(srcName);
+                        ++CopiesStatus.CopiedFiles;
+                    }
+                    else
+                    {
+                        Console.WriteLine("File '" + srcName + "' no longer exist.");
+                    }
+#endif
+
+                    string text = "Deleting Modded files: " + CopiesStatus.CopiedFiles + "/" + CopiesStatus.TotalFiles + " files deleted.";
+                    _callbackUpdateStatus(text);
+                }
+            }
+
+            CopiesStatus.TotalFiles = 0;
+            CopiesStatus.CopiedFiles = 0;
         }
 
         private List<ModInfoSimple> CheckForAppliedMod_Precheck()

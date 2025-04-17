@@ -1,5 +1,5 @@
 /*  Form1.UIHelper.cs
- *  Version 1.0 (2025.04.15)
+ *  Version 1.1 (2025.04.17)
  *  
  *  Contributor
  *      Arime-chan (Author)
@@ -111,6 +111,7 @@ namespace ParallelReality
             //lbl_LoadedModsCount.Text = list.Count.ToString();
 
             dgv_SelectedMods.Rows.Clear();
+            m_SelectedModsListPauseRowChangesEvent = true;
 
             for (int i = 0; i < list.Count; ++i)
             {
@@ -127,6 +128,9 @@ namespace ParallelReality
             }
 
             dgv_SelectedMods.ClearSelection();
+            m_SelectedModsListPauseRowChangesEvent = false;
+
+            NotifyModsOverrideEachOther();
         }
 
         private void CacheSelectedModsList()
@@ -369,6 +373,8 @@ namespace ParallelReality
 
         private int m_FoundModsListSelectingRow = -1;
         private int m_SelectedModsListSelectingRow = -1;
+
+        private bool m_SelectedModsListPauseRowChangesEvent = false;
 
         //private bool m_IsModsApplyingInProgress = false;
     }

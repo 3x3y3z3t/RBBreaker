@@ -28,8 +28,8 @@ namespace ParallelReality
         /// </summary>
         private void InitializeComponent()
         {
-            DataGridViewCellStyle dataGridViewCellStyle3 = new DataGridViewCellStyle();
-            DataGridViewCellStyle dataGridViewCellStyle4 = new DataGridViewCellStyle();
+            DataGridViewCellStyle dataGridViewCellStyle1 = new DataGridViewCellStyle();
+            DataGridViewCellStyle dataGridViewCellStyle2 = new DataGridViewCellStyle();
             label1 = new Label();
             m_TbBaseGameDir = new TextBox();
             lbl_FoundModsCount = new Label();
@@ -68,7 +68,7 @@ namespace ParallelReality
             btn_RefreshModList = new Button();
             lbl_Status = new Label();
             label9 = new Label();
-            textBox1 = new TextBox();
+            tb_CollisionList = new TextBox();
             linkLabel1 = new LinkLabel();
             lbl_ModsFolderChanged = new Label();
             ((System.ComponentModel.ISupportInitialize)dgv_FoundMods).BeginInit();
@@ -116,14 +116,14 @@ namespace ParallelReality
             dgv_FoundMods.AllowUserToAddRows = false;
             dgv_FoundMods.AllowUserToDeleteRows = false;
             dgv_FoundMods.AllowUserToResizeRows = false;
-            dataGridViewCellStyle3.Alignment = DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle3.BackColor = SystemColors.Control;
-            dataGridViewCellStyle3.Font = new Font("Segoe UI", 9F, FontStyle.Regular, GraphicsUnit.Point);
-            dataGridViewCellStyle3.ForeColor = SystemColors.WindowText;
-            dataGridViewCellStyle3.SelectionBackColor = SystemColors.Highlight;
-            dataGridViewCellStyle3.SelectionForeColor = SystemColors.HighlightText;
-            dataGridViewCellStyle3.WrapMode = DataGridViewTriState.False;
-            dgv_FoundMods.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle3;
+            dataGridViewCellStyle1.Alignment = DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle1.BackColor = SystemColors.Control;
+            dataGridViewCellStyle1.Font = new Font("Segoe UI", 9F, FontStyle.Regular, GraphicsUnit.Point);
+            dataGridViewCellStyle1.ForeColor = SystemColors.WindowText;
+            dataGridViewCellStyle1.SelectionBackColor = SystemColors.Highlight;
+            dataGridViewCellStyle1.SelectionForeColor = SystemColors.HighlightText;
+            dataGridViewCellStyle1.WrapMode = DataGridViewTriState.False;
+            dgv_FoundMods.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle1;
             dgv_FoundMods.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             dgv_FoundMods.Columns.AddRange(new DataGridViewColumn[] { Column2, Column1, Column3, Column4, Column5 });
             dgv_FoundMods.Location = new Point(12, 94);
@@ -297,14 +297,14 @@ namespace ParallelReality
             dgv_SelectedMods.AllowUserToAddRows = false;
             dgv_SelectedMods.AllowUserToDeleteRows = false;
             dgv_SelectedMods.AllowUserToResizeRows = false;
-            dataGridViewCellStyle4.Alignment = DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle4.BackColor = SystemColors.Control;
-            dataGridViewCellStyle4.Font = new Font("Segoe UI", 9F, FontStyle.Regular, GraphicsUnit.Point);
-            dataGridViewCellStyle4.ForeColor = SystemColors.WindowText;
-            dataGridViewCellStyle4.SelectionBackColor = SystemColors.Highlight;
-            dataGridViewCellStyle4.SelectionForeColor = SystemColors.HighlightText;
-            dataGridViewCellStyle4.WrapMode = DataGridViewTriState.False;
-            dgv_SelectedMods.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle4;
+            dataGridViewCellStyle2.Alignment = DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle2.BackColor = SystemColors.Control;
+            dataGridViewCellStyle2.Font = new Font("Segoe UI", 9F, FontStyle.Regular, GraphicsUnit.Point);
+            dataGridViewCellStyle2.ForeColor = SystemColors.WindowText;
+            dataGridViewCellStyle2.SelectionBackColor = SystemColors.Highlight;
+            dataGridViewCellStyle2.SelectionForeColor = SystemColors.HighlightText;
+            dataGridViewCellStyle2.WrapMode = DataGridViewTriState.False;
+            dgv_SelectedMods.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle2;
             dgv_SelectedMods.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             dgv_SelectedMods.Columns.AddRange(new DataGridViewColumn[] { Column6, dataGridViewTextBoxColumn1, dataGridViewTextBoxColumn2, dataGridViewTextBoxColumn3, dataGridViewTextBoxColumn4 });
             dgv_SelectedMods.Location = new Point(697, 94);
@@ -318,6 +318,8 @@ namespace ParallelReality
             dgv_SelectedMods.CellClick += dgv_SelectedMods_CellClick;
             dgv_SelectedMods.CellDoubleClick += dgv_SelectedMods_CellDoubleClick;
             dgv_SelectedMods.ColumnHeaderMouseClick += dgv_SelectedMods_ColumnHeaderMouseClick;
+            dgv_SelectedMods.RowsAdded += dgv_SelectedMods_RowsAdded;
+            dgv_SelectedMods.RowsRemoved += dgv_SelectedMods_RowsRemoved;
             // 
             // Column6
             // 
@@ -444,23 +446,21 @@ namespace ParallelReality
             label9.Size = new Size(77, 15);
             label9.TabIndex = 0;
             label9.Text = "Collision List:";
-            label9.Visible = false;
             // 
-            // textBox1
+            // tb_CollisionList
             // 
-            textBox1.Location = new Point(697, 507);
-            textBox1.Multiline = true;
-            textBox1.Name = "textBox1";
-            textBox1.ReadOnly = true;
-            textBox1.ScrollBars = ScrollBars.Vertical;
-            textBox1.Size = new Size(552, 162);
-            textBox1.TabIndex = 4;
-            textBox1.Visible = false;
+            tb_CollisionList.Location = new Point(697, 507);
+            tb_CollisionList.Multiline = true;
+            tb_CollisionList.Name = "tb_CollisionList";
+            tb_CollisionList.ReadOnly = true;
+            tb_CollisionList.ScrollBars = ScrollBars.Vertical;
+            tb_CollisionList.Size = new Size(552, 162);
+            tb_CollisionList.TabIndex = 4;
             // 
             // linkLabel1
             // 
             linkLabel1.AutoSize = true;
-            linkLabel1.Location = new Point(314, 462);
+            linkLabel1.Location = new Point(12, 657);
             linkLabel1.Name = "linkLabel1";
             linkLabel1.Size = new Size(516, 15);
             linkLabel1.TabIndex = 7;
@@ -488,7 +488,7 @@ namespace ParallelReality
             Controls.Add(linkLabel1);
             Controls.Add(btn_OpenReadme);
             Controls.Add(dgv_SelectedMods);
-            Controls.Add(textBox1);
+            Controls.Add(tb_CollisionList);
             Controls.Add(tb_ModFiles);
             Controls.Add(btn_RestoreBaseGame);
             Controls.Add(btn_Unselect);
@@ -567,7 +567,7 @@ namespace ParallelReality
         private DataGridViewTextBoxColumn dataGridViewTextBoxColumn4;
         private Label lbl_Status;
         private Label label9;
-        private TextBox textBox1;
+        private TextBox tb_CollisionList;
         private LinkLabel linkLabel1;
         private Label lbl_ModsFolderChanged;
     }
