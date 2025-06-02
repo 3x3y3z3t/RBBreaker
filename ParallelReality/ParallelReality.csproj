@@ -10,7 +10,7 @@
     <Title>Parallel Reality (Reality Break mod loader)</Title>
     <Authors>Arime-chan</Authors>
     <Company>_</Company>
-    <RepositoryUrl>https://github.com/3x3y3z3t/RBBreaker/tree/master/ParallelReality</RepositoryUrl>
+    <RepositoryUrl>https://github.com/3x3y3z3t/RBBreaker/tree/editor/ParallelReality</RepositoryUrl>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <FileVersion>1.4.0</FileVersion>
   </PropertyGroup>

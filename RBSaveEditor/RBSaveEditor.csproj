@@ -6,6 +6,7 @@
     <Nullable>enable</Nullable>
     <UseWindowsForms>true</UseWindowsForms>
     <ImplicitUsings>enable</ImplicitUsings>
+    <PublishSingleFile>true</PublishSingleFile>
     <Title>Reality Break Save Editor</Title>
     <Authors>Arime-chan</Authors>
     <Company>_</Company>

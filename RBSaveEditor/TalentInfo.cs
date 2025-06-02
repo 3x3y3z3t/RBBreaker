@@ -41,6 +41,11 @@ namespace RBSaveEditor
 
         public static void Init()
         {
+            if (!File.Exists("talent_name.csv"))
+            {
+                Console.WriteLine("File 'talent_name.csv' does not exist. This is not an error, but Talents list will show raw string instead.");
+                return;
+            }
             string[] lines = File.ReadAllLines("talent_name.csv");
 
             foreach (string line in lines)
