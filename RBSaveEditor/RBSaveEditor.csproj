@@ -1,0 +1,31 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net6.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <UseWindowsForms>true</UseWindowsForms>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Title>Reality Break Save Editor</Title>
+    <Authors>Arime-chan</Authors>
+    <Company>_</Company>
+    <RepositoryUrl>https://github.com/3x3y3z3t/RBBreaker/tree/master/RBSaveEditor</RepositoryUrl>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <FileVersion>0.2.0</FileVersion>
+  </PropertyGroup>
+  
+  <!--<Target Name="AfterBuild">
+    <Copy SourceFiles="$(ProjectDir)talent_name.csv" DestinationFolder="$(TargetDir)" />
+  </Target>-->
+  
+  <ItemGroup>
+    <None Update="talent_name.csv">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+  
+  <ItemGroup>
+    <Folder Include="GameClone\RewriteSystem\NewFolder\" />
+  </ItemGroup>
+  
+</Project>
