@@ -42,6 +42,7 @@ namespace RBSaveEditor
 
             //tabControl_Main.SelectedTab = tab_Pilot;
             list_StorageInventory.Items.Clear();
+            combo_Meta_Tier.SelectedIndex = -1;
 
 
 
@@ -120,13 +121,17 @@ namespace RBSaveEditor
             num_Meta_TalentPoints.Enabled = false;
             num_Meta_TalentPoints.Value = 0;
 
+            // ===== tier levels =====;
             combo_Meta_Tier.Enabled = false;
-            combo_Meta_Tier.Items.Clear();
+            combo_Meta_Tier.SelectedIndex = -1;
 
             dgv_Meta_TalentLevels.Rows.Clear();
             dgv_Meta_TalentLevels.Enabled = false;
 
-            // tier levels;
+
+
+
+
 
             lbl_Meta_CompletedMetagameNPESteps.Text = Constants.ZeroOverZero;
             lbl_Meta_CompletedTimelines.Text = Constants.Zero;
@@ -174,20 +179,14 @@ namespace RBSaveEditor
             num_Meta_TalentPoints.Enabled = true;
             num_Meta_TalentPoints.Value = mgame.TalentPoints;
 
+            // ===== talents levels =====;
             combo_Meta_Tier.Enabled = true;
+            combo_Meta_Tier.SelectedIndex = 0;
 
-            dgv_Meta_TalentLevels.SuspendLayout();
-            dgv_Meta_TalentLevels.Rows.Clear();
-
-            foreach (var pair in mgame.TalentLevels)
-            {
-                dgv_Meta_TalentLevels.Rows.Add(ConstructTalentRow(pair));
-            }
-
-            dgv_Meta_TalentLevels.ResumeLayout();
+            PopulateTalentsList(dgv_Meta_TalentLevels, mgame.TalentLevels, -1);
 
 
-            // tier levels
+
 
 
             lbl_Meta_CompletedMetagameNPESteps.Text = mgame.CompletedMetagameNPESteps.Count + "/" + Enum.GetValues<eMetagameNPEStep>().Length;
@@ -249,13 +248,13 @@ namespace RBSaveEditor
 
         private void ShowNotificationIfSaveVersionMismatch()
         {
-            if (m_LoadedMetagame == null || m_LoadedGame == null)
+            if (m_LoadedMetagame == null || m_LoadedPilot == null)
             {
                 lbl_SaveVersionMismatch.Visible = false;
                 return;
             }
 
-            lbl_SaveVersionMismatch.Visible = m_LoadedMetagame.VersionNumber != m_LoadedGame.VersionNumber;
+            lbl_SaveVersionMismatch.Visible = m_LoadedMetagame.VersionNumber != m_LoadedPilot.VersionNumber;
         }
 
 
@@ -298,7 +297,7 @@ namespace RBSaveEditor
                 return;
             }
 
-            m_ModdedMetagame = new(m_LoadedMetagame);
+            m_ModdedMetagame = (CMetagame?)m_LoadedMetagame.DeepClone();
         }
 
         private void LoadProfile(string _filename)
@@ -316,11 +315,11 @@ namespace RBSaveEditor
                 return;
             }
 
-            m_LoadedGame = new();
-            if (!m_LoadedGame.LoadProfile(reader))
+            m_LoadedPilot = new();
+            if (!m_LoadedPilot.LoadProfile(reader))
             {
-                m_LoadedGame = null;
-                m_ModdedGame = null;
+                m_LoadedPilot = null;
+                m_ModdedPilot = null;
 
                 // TODO: buttons;
 
@@ -328,7 +327,7 @@ namespace RBSaveEditor
                 return;
             }
 
-            m_ModdedGame = new(m_LoadedGame);
+            m_ModdedPilot = new(m_LoadedPilot);
         }
 
 
@@ -438,7 +437,78 @@ namespace RBSaveEditor
 
             m_LoadedMetagame.TalentPoints = (uint)num_Meta_TalentPoints.Value;
         }
+
+        private void combo_Meta_Tier_SelectedIndexChanged(object _sender, EventArgs _e)
+        {
+            if (combo_Meta_Tier.SelectedIndex < 0 || m_LoadedMetagame == null)
+                return;
+
+            int tier = combo_Meta_Tier.SelectedIndex - 1;
+
+            PopulateTalentsList(dgv_Meta_TalentLevels, m_LoadedMetagame.TalentLevels, tier);
+        }
+
+
+
+
+
+
+
+
+
+
         #endregion
+
+        private static void PopulateTalentsList(DataGridView _dgv, Dictionary<string, uint> _talents, int _tier)
+        {
+            _dgv.SuspendLayout();
+            _dgv.Rows.Clear();
+
+            foreach (var pair in _talents)
+            {
+                dynamic[]? row = null;
+                if (TalentManager.TryGetValue(pair.Key, out TalentInfo? talentInfo))
+                {
+                    if (_tier != -1 && (talentInfo.Tier == -1 || talentInfo.Tier != _tier))
+                        continue;
+
+                    row = new dynamic[]
+                    {
+                        talentInfo.Tier, talentInfo.ProtoNameShort, pair.Value, talentInfo.FriendlyName, talentInfo.Description
+                    };
+                }
+                else
+                {
+                    if (_tier == -1)
+                        row = new dynamic[] { -1, pair.Key, pair.Value, string.Empty, string.Empty };
+                }
+
+                if (row != null)
+                    _dgv.Rows.Add(row);
+            }
+
+            _dgv.ClearSelection();
+            _dgv.ResumeLayout();
+        }
+
+
+
+
+
+
+
+
+
+
+        #region Helpers
+
+
+
+        #endregion
+
+
+
+
 
 
         private void SaveMetagame()
@@ -472,6 +542,40 @@ namespace RBSaveEditor
 
             Console.WriteLine("Metagame file saved.");
         }
+
+
+        private void dgv_Meta_TalentLevels_CellValueChanged(object _sender, DataGridViewCellEventArgs _e)
+        {
+            int row = _e.RowIndex;
+            int col = _e.ColumnIndex;
+            if (row < 0 || col != 2 || m_LoadedMetagame == null)
+                return;
+
+            var cells = ((DataGridView)_sender).Rows[row].Cells;
+            if (!uint.TryParse((string)cells[col].Value, out uint level))
+            {
+                return;
+            }
+
+            string key = TalentInfo.GetFullProtoName((string)cells[1].Value);
+
+            var talents = m_LoadedMetagame.TalentLevels;
+            if (!talents.ContainsKey(key))
+            {
+                Console.WriteLine("Talent '" + key + "' not found.");
+                return;
+            }
+
+            talents[key] = level;
+        }
+
+
+
+
+
+
+
+
 
 
 

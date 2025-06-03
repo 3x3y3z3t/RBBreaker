@@ -47,7 +47,7 @@ namespace RBSaveEditor
 
         private void btn_SavePilot_Click(object sender, EventArgs e)
         {
-            if (m_LoadedGame == null)
+            if (m_LoadedPilot == null)
             {
                 Console.WriteLine("LoadedGame is null (this should not happen).");
                 return;
@@ -61,10 +61,10 @@ namespace RBSaveEditor
 
         private void num_Lvl_ValueChanged(object sender, EventArgs e)
         {
-            if (m_LoadedGame == null)
+            if (m_LoadedPilot == null)
                 return;
 
-            CProgressionElementPlayer? progression = m_LoadedGame.Player.ProgressionElement;
+            CProgressionElementPlayer? progression = m_LoadedPilot.Player.ProgressionElement;
             if (progression == null)
                 return;
 
@@ -75,10 +75,10 @@ namespace RBSaveEditor
 
         private void num_Xp_ValueChanged(object sender, EventArgs e)
         {
-            if (m_LoadedGame == null)
+            if (m_LoadedPilot == null)
                 return;
 
-            CProgressionElementPlayer? progression = m_LoadedGame.Player.ProgressionElement;
+            CProgressionElementPlayer? progression = m_LoadedPilot.Player.ProgressionElement;
             if (progression == null)
                 return;
 
@@ -87,10 +87,10 @@ namespace RBSaveEditor
 
         private void num_Credits_ValueChanged(object sender, EventArgs e)
         {
-            if (m_LoadedGame == null)
+            if (m_LoadedPilot == null)
                 return;
 
-            foreach (var currency in m_LoadedGame.Player.Currencies)
+            foreach (var currency in m_LoadedPilot.Player.Currencies)
             {
                 switch (currency.CurrencyType)
                 {
@@ -103,10 +103,10 @@ namespace RBSaveEditor
 
         private void num_Fate_ValueChanged(object sender, EventArgs e)
         {
-            if (m_LoadedGame == null)
+            if (m_LoadedPilot == null)
                 return;
 
-            foreach (var currency in m_LoadedGame.Player.Currencies)
+            foreach (var currency in m_LoadedPilot.Player.Currencies)
             {
                 switch (currency.CurrencyType)
                 {
@@ -173,13 +173,13 @@ namespace RBSaveEditor
 
         private void list_StorageInventory_ItemSelectionChanged(object sender, ListViewItemSelectionChangedEventArgs _evt)
         {
-            if (!_evt.IsSelected || m_LoadedGame == null)
+            if (!_evt.IsSelected || m_LoadedPilot == null)
             {
                 lbl_SelectedItem_Clear();
                 return;
             }
 
-            var inventoryItems = m_LoadedGame.Player.Inventory.Items;
+            var inventoryItems = m_LoadedPilot.Player.Inventory.Items;
             if (_evt.ItemIndex > inventoryItems.Count)
             {
                 Console.WriteLine("list_StorageInventory_Click(): Selected index out of range (this should not happen).");
@@ -214,11 +214,11 @@ namespace RBSaveEditor
                 return;
             }
 
-            m_LoadedGame = new();
-            if (!m_LoadedGame.LoadProfile(reader))
+            m_LoadedPilot = new();
+            if (!m_LoadedPilot.LoadProfile(reader))
             {
-                m_LoadedGame = null;
-                m_ModdedGame = null;
+                m_LoadedPilot = null;
+                m_ModdedPilot = null;
                 // TODO: buttons;
 
                 Console.WriteLine("LoadPilot(): Could not read pilot from file.");
@@ -231,7 +231,7 @@ namespace RBSaveEditor
 
         private void SavePilot()
         {
-            if (m_LoadedGame == null)
+            if (m_LoadedPilot == null)
                 return;
 
             string orgFileFullname = s_SaveFilePath + "/" + m_LoadedSaveFilename;
@@ -250,7 +250,7 @@ namespace RBSaveEditor
                 return;
             }
 
-            m_LoadedGame.SaveProfile(writer);
+            m_LoadedPilot.SaveProfile(writer);
             writer.SaveFile(orgFileFullname);
 
             Console.WriteLine("Pilot file '" + m_LoadedSaveFilename + "' saved.");
@@ -259,19 +259,19 @@ namespace RBSaveEditor
 
         private void PopulatePilot()
         {
-            if (m_LoadedGame == null)
+            if (m_LoadedPilot == null)
             {
                 ClearPilot();
                 return;
             }
 
-            CGame game = m_LoadedGame;
+            CGame game = m_LoadedPilot;
 
             string pilotSaveFileStr = "Save Version " + game.VersionNumber + " (" + game.SaveDateTime.ToString("yyyy/MM/dd HH:mm:ss") + ")";
             lbl_Pilot_SaveFile.Text = pilotSaveFileStr;
             lbl_Pilot_SaveFile.ForeColor = Color.Green;
 
-            CProgressionElementPlayer? progression = m_LoadedGame.Player.ProgressionElement;
+            CProgressionElementPlayer? progression = m_LoadedPilot.Player.ProgressionElement;
             if (progression == null)
                 return;
 
@@ -348,8 +348,8 @@ namespace RBSaveEditor
 
         private string m_LoadedSaveFilename = string.Empty;
 
-        private CGame? m_LoadedGame;
-        private CGame? m_ModdedGame;
+        private CGame? m_LoadedPilot;
+        private CGame? m_ModdedPilot;
     }
 
 }

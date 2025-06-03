@@ -1,15 +1,16 @@
 /*  GameClone/CMetagame.cs
- *  Version 1.0 (2025.05.29)
+ *  Version 2 (2025.06.04)
  *  
  *  Contributor
  *      Arime-chan (Author)
  */
 
+using System.Diagnostics.Contracts;
 using System.Text;
 
 namespace RBSaveEditor.GameClone
 {
-    public class CMetagame
+    public class CMetagame : IDeepCloneable
     {
 
 
@@ -49,69 +50,6 @@ namespace RBSaveEditor.GameClone
         //public int OverlordLevel { get => m_OverlordLevel; set => m_OverlordLevel = value; }
 
         //public CNPE NPE => m_NPE;
-
-
-        public CMetagame()
-        { }
-
-        public CMetagame(CMetagame _other)
-        {
-            m_VersionNumber = _other.VersionNumber;
-            m_SaveDateTime = _other.SaveDateTime;
-
-            m_Unlocked = _other.Unlocked;
-            m_TalentPoints = _other.m_TalentPoints;
-            m_TalentLevels = new(_other.m_TalentLevels);
-            m_TierLevels = new(_other.m_TierLevels);
-
-            m_CompletedMetagameNPESteps = new(_other.m_CompletedMetagameNPESteps);
-            m_CompletedTimelines = new(_other.m_CompletedTimelines);
-            m_NumTimesRealityBroken = _other.m_NumTimesRealityBroken;
-
-            m_DialogueSeenInfosMap = new(_other.m_DialogueSeenInfosMap.Count);
-            foreach (var pair in _other.m_DialogueSeenInfosMap)
-            {
-                var newValue = new bool[pair.Value.GetLength(0), pair.Value.GetLength(1), pair.Value.GetLength(2)];
-                Array.Copy(pair.Value, newValue, pair.Value.Length);
-                m_DialogueSeenInfosMap.Add(pair.Key, newValue);
-            }
-
-            if (_other.m_EverEncounteredEnemies != null)
-            {
-                m_EverEncounteredEnemies = new(_other.m_EverEncounteredEnemies);
-            }
-            m_CriteriaEverFulfilled = new(_other.m_CriteriaEverFulfilled);
-
-            m_UnlockedAptitudeInfos = new(_other.m_UnlockedAptitudeInfos.Count);
-            foreach (var otherItem in _other.m_UnlockedAptitudeInfos)
-            {
-                m_UnlockedAptitudeInfos.Add(new(otherItem));
-            }
-
-            m_AdditionalSetFlags = new(_other.m_AdditionalSetFlags);
-
-            m_CallAttentionToEntityRewritingTalent = _other.m_CallAttentionToEntityRewritingTalent;
-            m_CallAttentionToDialogueRewritingTalent = _other.m_CallAttentionToDialogueRewritingTalent;
-            m_CallAttentionToNewAptitudes = new(_other.m_CallAttentionToNewAptitudes);
-
-            m_ProcessedDemoImport = _other.m_ProcessedDemoImport;
-            m_DemoMigratedRP = _other.m_DemoMigratedRP;
-
-            m_DemoMigratedAptitudes = new(_other.m_DemoMigratedAptitudes.Count);
-            foreach (var otherItem in _other.m_DemoMigratedAptitudes)
-            {
-                m_DemoMigratedAptitudes.Add(new(otherItem));
-            }
-
-            m_OverlordEntityProtoName = _other.m_OverlordEntityProtoName;
-            m_OverlordHealthFraction = _other.m_OverlordHealthFraction;
-            m_OverlordLevel = _other.m_OverlordLevel;
-
-            m_NPE = new(_other.m_NPE);
-
-            m_RemainingBytes = new byte[_other.m_RemainingBytes.Length];
-            _other.m_RemainingBytes.CopyTo(m_RemainingBytes, 0);
-        }
 
 
         public bool Load(SaveFileReader _reader)
@@ -293,6 +231,17 @@ namespace RBSaveEditor.GameClone
                 }
                 _writer.WriteString(sb.ToString());
             }
+        }
+
+        public IDeepCloneable DeepClone()
+        {
+            var copy = (CMetagame)MemberwiseClone();
+
+            copy.m_UnlockedAptitudeInfos = m_UnlockedAptitudeInfos.DeepClone();
+            copy.m_DemoMigratedAptitudes = m_DemoMigratedAptitudes.DeepClone();
+            copy.m_NPE = (CNPE)m_NPE.DeepClone();
+
+            return copy;
         }
 
 

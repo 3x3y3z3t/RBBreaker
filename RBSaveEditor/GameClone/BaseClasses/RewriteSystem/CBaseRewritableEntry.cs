@@ -1,5 +1,5 @@
 /*  GameClone/BaseClasses/RewriteSystem/CBaseRewritableEntry.cs
- *  Version 1.0 (2025.05.31)
+ *  Version 2 (2025.06.04)
  *  
  *  Contributor
  *      Arime-chan (Author)
@@ -7,7 +7,7 @@
 
 namespace RBSaveEditor.GameClone.BaseClasses.RewriteSystem
 {
-    public abstract class CBaseRewritableEntry : ISaveable, IDeepCopyable
+    public abstract class CBaseRewritableEntry : ISaveable, IDeepCloneable
     {
         public virtual void Load(SaveFileReader _reader)
         {
@@ -35,22 +35,10 @@ namespace RBSaveEditor.GameClone.BaseClasses.RewriteSystem
             _writer.WriteInt32(m_NumericEntryMax);
         }
 
-        public virtual void DeepCopyInto(IDeepCopyable _other)
+        public IDeepCloneable DeepClone()
         {
-            if (_other is not CBaseRewritableEntry target)
-            {
-                throw new ArgumentException("_other is not a CBaseRewritableEntry.");
-            }
-
-            target.m_Cost = new(m_Cost);
-
-            target.m_IsActive = m_IsActive;
-            target.m_IsAvailable = m_IsAvailable;
-            target.m_IsRewritten = m_IsRewritten;
-
-            target.m_IsNumericEntry = m_IsNumericEntry;
-            target.m_NumericEntryMin = m_NumericEntryMin;
-            target.m_NumericEntryMax = m_NumericEntryMax;
+            var copy = (CBaseRewritableEntry)MemberwiseClone();
+            return copy;
         }
 
 

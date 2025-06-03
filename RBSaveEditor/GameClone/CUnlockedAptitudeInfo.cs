@@ -1,5 +1,5 @@
 /*  GameClone/CUnlockedAptitudeInfo.cs
- *  Version 1.0 (2025.05.29)
+ *  Version 2 (2025.06.04)
  *  
  *  Contributor
  *      Arime-chan (Author)
@@ -7,20 +7,10 @@
 
 namespace RBSaveEditor.GameClone
 {
-    public class CUnlockedAptitudeInfo
+    public class CUnlockedAptitudeInfo : IDeepCloneable
     {
         public string AptitudeName => m_AptitudeName;
         public int HighestChallengeLevel => m_HighestChallengeLevel;
-
-
-        public CUnlockedAptitudeInfo()
-        { }
-
-        public CUnlockedAptitudeInfo(CUnlockedAptitudeInfo _other)
-        {
-            m_AptitudeName = _other.AptitudeName;
-            m_HighestChallengeLevel = _other.HighestChallengeLevel;
-        }
 
 
         public static CUnlockedAptitudeInfo Read(SaveFileReader _reader)
@@ -40,6 +30,12 @@ namespace RBSaveEditor.GameClone
 
             _writer.WriteString(value.m_AptitudeName);
             _writer.WriteInt32(value.m_HighestChallengeLevel);
+        }
+
+        public IDeepCloneable DeepClone()
+        {
+            var copy = (CUnlockedAptitudeInfo)MemberwiseClone();
+            return copy;
         }
 
 

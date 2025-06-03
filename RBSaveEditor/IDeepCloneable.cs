@@ -1,23 +1,12 @@
-/*  GameClone/IDeepCopyable.cs
- *  Version 1.0 (2025.05.31)
+/*  GameClone/IDeepCloneable.cs
+ *  Version 2 (2025.06.04)
  *  
  *  Contributor
  *      Arime-chan (Author)
  */
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
 namespace RBSaveEditor
 {
-    public interface IDeepCopyable
-    {
-        public void DeepCopyInto(IDeepCopyable _other);
-    }
-
     public interface IDeepCloneable
     {
         public IDeepCloneable DeepClone();
@@ -28,6 +17,16 @@ namespace RBSaveEditor
         public static List<T> DeepClone<T>(this List<T> _original) where T : IDeepCloneable
         {
             List<T> result = new(_original.Count);
+            foreach (var item in _original)
+            {
+                result.Add((T)item.DeepClone());
+            }
+            return result;
+        }
+
+        public static HashSet<T> DeepClone<T>(this HashSet<T> _original) where T : IDeepCloneable
+        {
+            HashSet<T> result = new(_original.Count);
             foreach (var item in _original)
             {
                 result.Add((T)item.DeepClone());

@@ -1,5 +1,5 @@
 /*  GameClone/BaseClasses/RewriteSystem/CBaseRewritableCategoryItem.cs
- *  Version 1.0 (2025.05.31)
+ *  Version 2 (2025.06.04)
  *  
  *  Contributor
  *      Arime-chan (Author)
@@ -30,17 +30,10 @@ namespace RBSaveEditor.GameClone.BaseClasses.RewriteSystem
             _writer.WriteEnum(m_ItemRarity);
         }
 
-        public override void DeepCopyInto(IDeepCopyable _other)
+        public override IDeepCloneable DeepClone()
         {
-            if (_other is not CBaseRewritableCategoryItem target)
-            {
-                throw new ArgumentException("_other is not a CBaseRewritableCategoryItem.");
-            }
-
-            base.DeepCopyInto(_other);
-
-            target.m_ItemRewriteType = m_ItemRewriteType;
-            target.m_ItemRarity = m_ItemRarity;
+            var copy = (CBaseRewritableCategoryItem)base.DeepClone();
+            return copy;
         }
 
 

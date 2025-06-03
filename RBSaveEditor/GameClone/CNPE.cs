@@ -1,5 +1,5 @@
 /*  GameClone/CNPE.cs
- *  Version 1.0 (2025.05.29)
+ *  Version 2 (2025.06.04)
  *  
  *  Contributor
  *      Arime-chan (Author)
@@ -7,7 +7,7 @@
 
 namespace RBSaveEditor.GameClone
 {
-    public class CNPE
+    public class CNPE : IDeepCloneable
     {
         public CNPE()
         {
@@ -41,6 +41,12 @@ namespace RBSaveEditor.GameClone
             }
 
             return true;
+        }
+
+        public IDeepCloneable DeepClone()
+        {
+            var copy = (CNPE)MemberwiseClone();
+            return copy;
         }
 
 

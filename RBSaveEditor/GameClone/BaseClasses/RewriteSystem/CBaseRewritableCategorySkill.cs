@@ -1,5 +1,5 @@
 /*  GameClone/BaseClasses/RewriteSystem/CBaseRewritableCategorySkill.cs
- *  Version 1.0 (2025.05.31)
+ *  Version 2 (2025.06.04)
  *  
  *  Contributor
  *      Arime-chan (Author)
@@ -26,16 +26,10 @@ namespace RBSaveEditor.GameClone.BaseClasses.RewriteSystem
             _writer.WriteEnum(m_SkillRewriteType);
         }
 
-        public override void DeepCopyInto(IDeepCopyable _other)
+        public override IDeepCloneable DeepClone()
         {
-            if (_other is not CBaseRewritableCategorySkill target)
-            {
-                throw new ArgumentException("_other is not a CBaseRewritableCategorySkill.");
-            }
-
-            base.DeepCopyInto(_other);
-
-            target.m_SkillRewriteType = m_SkillRewriteType;
+            var copy = (CBaseRewritableCategorySkill)base.DeepClone();
+            return copy;
         }
 
 

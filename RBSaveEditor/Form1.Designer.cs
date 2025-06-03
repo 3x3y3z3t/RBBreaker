@@ -28,19 +28,19 @@ namespace RBSaveEditor
         /// </summary>
         private void InitializeComponent()
         {
-            DataGridViewCellStyle dataGridViewCellStyle1 = new DataGridViewCellStyle();
-            DataGridViewCellStyle dataGridViewCellStyle2 = new DataGridViewCellStyle();
-            ListViewItem listViewItem1 = new ListViewItem("ádsadsad");
-            ListViewItem listViewItem2 = new ListViewItem("123213123");
-            ListViewItem listViewItem3 = new ListViewItem("Item3");
-            ListViewItem listViewItem4 = new ListViewItem("item4");
-            ListViewItem listViewItem5 = new ListViewItem("item5");
-            ListViewItem listViewItem6 = new ListViewItem("6");
-            ListViewItem listViewItem7 = new ListViewItem("7");
-            ListViewItem listViewItem8 = new ListViewItem("8");
-            ListViewItem listViewItem9 = new ListViewItem("9");
-            ListViewItem listViewItem10 = new ListViewItem("10asdsadsadsa");
-            ListViewItem listViewItem11 = new ListViewItem("11");
+            DataGridViewCellStyle dataGridViewCellStyle3 = new DataGridViewCellStyle();
+            DataGridViewCellStyle dataGridViewCellStyle4 = new DataGridViewCellStyle();
+            ListViewItem listViewItem12 = new ListViewItem("ádsadsad");
+            ListViewItem listViewItem13 = new ListViewItem("123213123");
+            ListViewItem listViewItem14 = new ListViewItem("Item3");
+            ListViewItem listViewItem15 = new ListViewItem("item4");
+            ListViewItem listViewItem16 = new ListViewItem("item5");
+            ListViewItem listViewItem17 = new ListViewItem("6");
+            ListViewItem listViewItem18 = new ListViewItem("7");
+            ListViewItem listViewItem19 = new ListViewItem("8");
+            ListViewItem listViewItem20 = new ListViewItem("9");
+            ListViewItem listViewItem21 = new ListViewItem("10asdsadsadsa");
+            ListViewItem listViewItem22 = new ListViewItem("11");
             label1 = new Label();
             label2 = new Label();
             button1 = new Button();
@@ -62,6 +62,7 @@ namespace RBSaveEditor
             cb_Meta_Unlocked = new CheckBox();
             label6 = new Label();
             label4 = new Label();
+            label29 = new Label();
             lbl_Meta_DialogueSeenInfosMap = new Label();
             lbl_Meta_CallAttentionToNewAptitudes = new Label();
             lbl_Meta_AdditionalSetFlags = new Label();
@@ -204,6 +205,7 @@ namespace RBSaveEditor
             tabPage1.Controls.Add(cb_Meta_Unlocked);
             tabPage1.Controls.Add(label6);
             tabPage1.Controls.Add(label4);
+            tabPage1.Controls.Add(label29);
             tabPage1.Controls.Add(lbl_Meta_DialogueSeenInfosMap);
             tabPage1.Controls.Add(lbl_Meta_CallAttentionToNewAptitudes);
             tabPage1.Controls.Add(lbl_Meta_AdditionalSetFlags);
@@ -242,18 +244,19 @@ namespace RBSaveEditor
             dgv_Meta_TalentLevels.Location = new Point(517, 53);
             dgv_Meta_TalentLevels.MultiSelect = false;
             dgv_Meta_TalentLevels.Name = "dgv_Meta_TalentLevels";
-            dgv_Meta_TalentLevels.ReadOnly = true;
             dgv_Meta_TalentLevels.RowHeadersVisible = false;
             dgv_Meta_TalentLevels.RowTemplate.Height = 25;
             dgv_Meta_TalentLevels.SelectionMode = DataGridViewSelectionMode.CellSelect;
             dgv_Meta_TalentLevels.Size = new Size(709, 390);
             dgv_Meta_TalentLevels.TabIndex = 4;
+            dgv_Meta_TalentLevels.CellValueChanged += dgv_Meta_TalentLevels_CellValueChanged;
             // 
             // Column4
             // 
-            dataGridViewCellStyle1.Alignment = DataGridViewContentAlignment.TopRight;
-            Column4.DefaultCellStyle = dataGridViewCellStyle1;
+            dataGridViewCellStyle3.Alignment = DataGridViewContentAlignment.TopRight;
+            Column4.DefaultCellStyle = dataGridViewCellStyle3;
             Column4.HeaderText = "Tier";
+            Column4.MinimumWidth = 20;
             Column4.Name = "Column4";
             Column4.ReadOnly = true;
             Column4.Width = 35;
@@ -261,22 +264,24 @@ namespace RBSaveEditor
             // Column1
             // 
             Column1.HeaderText = "Internal Name";
+            Column1.MinimumWidth = 100;
             Column1.Name = "Column1";
             Column1.ReadOnly = true;
             Column1.Width = 200;
             // 
             // Column3
             // 
-            dataGridViewCellStyle2.Alignment = DataGridViewContentAlignment.TopRight;
-            Column3.DefaultCellStyle = dataGridViewCellStyle2;
+            dataGridViewCellStyle4.Alignment = DataGridViewContentAlignment.TopRight;
+            Column3.DefaultCellStyle = dataGridViewCellStyle4;
             Column3.HeaderText = "Level";
+            Column3.MinimumWidth = 25;
             Column3.Name = "Column3";
-            Column3.ReadOnly = true;
             Column3.Width = 40;
             // 
             // Column2
             // 
             Column2.HeaderText = "Friendly Name";
+            Column2.MinimumWidth = 100;
             Column2.Name = "Column2";
             Column2.ReadOnly = true;
             Column2.Width = 150;
@@ -284,6 +289,7 @@ namespace RBSaveEditor
             // Column5
             // 
             Column5.HeaderText = "Description";
+            Column5.MinimumWidth = 100;
             Column5.Name = "Column5";
             Column5.ReadOnly = true;
             Column5.Width = 250;
@@ -291,10 +297,12 @@ namespace RBSaveEditor
             // combo_Meta_Tier
             // 
             combo_Meta_Tier.FormattingEnabled = true;
+            combo_Meta_Tier.Items.AddRange(new object[] { "-- Display All --", "Tier 1", "Tier 2", "Tier 3" });
             combo_Meta_Tier.Location = new Point(1097, 31);
             combo_Meta_Tier.Name = "combo_Meta_Tier";
             combo_Meta_Tier.Size = new Size(129, 23);
             combo_Meta_Tier.TabIndex = 5;
+            combo_Meta_Tier.SelectedIndexChanged += combo_Meta_Tier_SelectedIndexChanged;
             // 
             // num_Meta_TalentPoints
             // 
@@ -351,11 +359,23 @@ namespace RBSaveEditor
             // label4
             // 
             label4.AutoSize = true;
-            label4.Location = new Point(731, 34);
+            label4.ForeColor = SystemColors.HotTrack;
+            label4.Location = new Point(517, 34);
             label4.Name = "label4";
-            label4.Size = new Size(43, 15);
+            label4.Size = new Size(163, 15);
             label4.TabIndex = 0;
-            label4.Text = "Talents";
+            label4.Text = "Talents (only Level is editable)";
+            // 
+            // label29
+            // 
+            label29.AutoSize = true;
+            label29.ForeColor = Color.Red;
+            label29.Location = new Point(777, 19);
+            label29.Name = "label29";
+            label29.Size = new Size(282, 30);
+            label29.TabIndex = 3;
+            label29.Text = "Most of talents info have not been embedded yet,    \r\nso select \"-- Display All --\" to show all talents →";
+            label29.TextAlign = ContentAlignment.TopRight;
             // 
             // lbl_Meta_DialogueSeenInfosMap
             // 
@@ -566,7 +586,7 @@ namespace RBSaveEditor
             // list_StorageInventory
             // 
             list_StorageInventory.GridLines = true;
-            list_StorageInventory.Items.AddRange(new ListViewItem[] { listViewItem1, listViewItem2, listViewItem3, listViewItem4, listViewItem5, listViewItem6, listViewItem7, listViewItem8, listViewItem9, listViewItem10, listViewItem11 });
+            list_StorageInventory.Items.AddRange(new ListViewItem[] { listViewItem12, listViewItem13, listViewItem14, listViewItem15, listViewItem16, listViewItem17, listViewItem18, listViewItem19, listViewItem20, listViewItem21, listViewItem22 });
             list_StorageInventory.Location = new Point(23, 256);
             list_StorageInventory.MultiSelect = false;
             list_StorageInventory.Name = "list_StorageInventory";
@@ -982,11 +1002,6 @@ namespace RBSaveEditor
         private CheckBox cb_Meta_CallAttentionToDialogueRewriteTalent;
         private Label lbl_Meta_CallAttentionToNewAptitudes;
         private Label label15;
-        private DataGridViewTextBoxColumn Column4;
-        private DataGridViewTextBoxColumn Column1;
-        private DataGridViewTextBoxColumn Column3;
-        private DataGridViewTextBoxColumn Column2;
-        private DataGridViewTextBoxColumn Column5;
         private TextBox tb_Meta_FunnyChar;
         private Label label16;
         private TextBox tb_Meta_FunnyCharCode;
@@ -1018,5 +1033,11 @@ namespace RBSaveEditor
         private Button btn_SaveMetagame;
         private Button btn_SavePilot;
         private Label label28;
+        private Label label29;
+        private DataGridViewTextBoxColumn Column4;
+        private DataGridViewTextBoxColumn Column1;
+        private DataGridViewTextBoxColumn Column3;
+        private DataGridViewTextBoxColumn Column2;
+        private DataGridViewTextBoxColumn Column5;
     }
 }

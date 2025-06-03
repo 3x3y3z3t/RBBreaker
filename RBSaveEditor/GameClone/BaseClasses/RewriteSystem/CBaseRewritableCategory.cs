@@ -1,5 +1,5 @@
 /*  GameClone/BaseClasses/RewriteSystem/CBaseRewritableCategory.cs
- *  Version 1.0 (2025.05.31)
+ *  Version 2 (2025.06.04)
  *  
  *  Contributor
  *      Arime-chan (Author)
@@ -7,7 +7,7 @@
 
 namespace RBSaveEditor.GameClone.BaseClasses.RewriteSystem
 {
-    public abstract class CBaseRewritableCategory : ISaveable, IDeepCopyable
+    public abstract class CBaseRewritableCategory : ISaveable, IDeepCloneable
     {
         public virtual void Load(SaveFileReader _reader)
         {
@@ -44,24 +44,12 @@ namespace RBSaveEditor.GameClone.BaseClasses.RewriteSystem
             _writer.WriteBool(m_CumulativeRewrites);
         }
 
-        public virtual void DeepCopyInto(IDeepCopyable _other)
+        public virtual IDeepCloneable DeepClone()
         {
-            if (_other is not CBaseRewritableCategory target)
-            {
-                throw new ArgumentException("_other is not a CBaseRewritableCategory.");
-            }
+            var copy = (CBaseRewritableCategory)MemberwiseClone();
 
-            target.m_CategoryIndex = m_CategoryIndex;
-
-            target.m_RewritableEntries = new(m_RewritableEntries.Count);
-            foreach (CBaseRewritableEntry entry in m_RewritableEntries)
-            {
-                entry.DeepCopyInto(target);
-            }
-
-            target.m_EntriesStartingOffset = m_EntriesStartingOffset;
-
-            target.m_CumulativeRewrites = m_CumulativeRewrites;
+            copy.m_RewritableEntries = m_RewritableEntries.DeepClone();
+            return copy;
         }
 
 

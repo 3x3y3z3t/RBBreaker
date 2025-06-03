@@ -14,19 +14,29 @@
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <FileVersion>0.2.0</FileVersion>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="talent_name.csv" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="talent_name.csv">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </EmbeddedResource>
+  </ItemGroup>
   
   <!--<Target Name="AfterBuild">
     <Copy SourceFiles="$(ProjectDir)talent_name.csv" DestinationFolder="$(TargetDir)" />
   </Target>-->
   
   <ItemGroup>
-    <None Update="talent_name.csv">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
+    <Folder Include="GameClone\RewriteSystem\NewFolder\" />
   </ItemGroup>
   
   <ItemGroup>
-    <Folder Include="GameClone\RewriteSystem\NewFolder\" />
+    <Compile Update="CustomControls\DoubleBufferedPanel.cs">
+      <SubType>Component</SubType>
+    </Compile>
   </ItemGroup>
   
 </Project>
