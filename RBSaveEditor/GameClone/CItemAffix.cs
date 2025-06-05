@@ -1,5 +1,5 @@
 /*  GameClone/CItemAffix.cs
- *  Version 1.0 (2025.05.30)
+ *  Version 2 (2025.06.04)
  *  
  *  Contributor
  *      Arime-chan (Author)
@@ -10,9 +10,21 @@ namespace RBSaveEditor.GameClone
     // In actual game code, this class derives from CBaseAffix.
     public class CItemAffix : ISaveable
     {
+        public eItemAffixGroup AffixGroup => m_AffixGroup;
+
+        public eItemAffixType AffixType { get => m_AffixType; set => m_AffixType = value; }
+        public float AffixValue { get => m_AffixValue; set => m_AffixValue = value; }
+        public eAffixOperator AffixOperator { get => m_AffixOperator; set => m_AffixOperator = value; }
+
+        public bool IsSpecial { get => m_IsSpecial; set => m_IsSpecial = value; }
+        public bool IsCrafted { get => m_IsCrafted; set => m_IsCrafted = value; }
+        public int NumTimeBoosted { get => m_NumTimesBoosted; set => m_NumTimesBoosted = value; }
+
+
         public void Load(SaveFileReader _reader)
         {
             m_AffixType = _reader.ReadEnum<eItemAffixType>();
+            m_AffixGroup = m_AffixType.GetAffixGroup();
             m_AffixContext = _reader.ReadString();
             if (m_AffixContext == string.Empty)
                 m_AffixContext = null;
@@ -47,18 +59,7 @@ namespace RBSaveEditor.GameClone
         public override string ToString()
         {
             string str = "";
-            switch (m_AffixOperator)
-            {
-                case eAffixOperator.Add:
-                    str += "+";
-                    break;
-                case eAffixOperator.Multiply:
-                    str += "x";
-                    break;
-                default:
-                    str += "[?]";
-                    break;
-            }
+            str += m_AffixOperator.GetAffixOperatorSymbol();
             switch (m_AffixType)
             {
                 case eItemAffixType.CriticalDamage:
@@ -83,6 +84,9 @@ namespace RBSaveEditor.GameClone
         private bool m_IsSpecial = false;
         private bool m_IsCrafted = false;
         private int m_NumTimesBoosted = 0;
+
+
+        private eItemAffixGroup m_AffixGroup = eItemAffixGroup.Primary;
     }
 
 }

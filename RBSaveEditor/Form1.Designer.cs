@@ -28,19 +28,19 @@ namespace RBSaveEditor
         /// </summary>
         private void InitializeComponent()
         {
-            DataGridViewCellStyle dataGridViewCellStyle3 = new DataGridViewCellStyle();
-            DataGridViewCellStyle dataGridViewCellStyle4 = new DataGridViewCellStyle();
-            ListViewItem listViewItem12 = new ListViewItem("ádsadsad");
-            ListViewItem listViewItem13 = new ListViewItem("123213123");
-            ListViewItem listViewItem14 = new ListViewItem("Item3");
-            ListViewItem listViewItem15 = new ListViewItem("item4");
-            ListViewItem listViewItem16 = new ListViewItem("item5");
-            ListViewItem listViewItem17 = new ListViewItem("6");
-            ListViewItem listViewItem18 = new ListViewItem("7");
-            ListViewItem listViewItem19 = new ListViewItem("8");
-            ListViewItem listViewItem20 = new ListViewItem("9");
-            ListViewItem listViewItem21 = new ListViewItem("10asdsadsadsa");
-            ListViewItem listViewItem22 = new ListViewItem("11");
+            DataGridViewCellStyle dataGridViewCellStyle1 = new DataGridViewCellStyle();
+            DataGridViewCellStyle dataGridViewCellStyle2 = new DataGridViewCellStyle();
+            ListViewItem listViewItem1 = new ListViewItem("ádsadsad");
+            ListViewItem listViewItem2 = new ListViewItem("123213123");
+            ListViewItem listViewItem3 = new ListViewItem("Item3");
+            ListViewItem listViewItem4 = new ListViewItem("item4");
+            ListViewItem listViewItem5 = new ListViewItem("item5");
+            ListViewItem listViewItem6 = new ListViewItem("6");
+            ListViewItem listViewItem7 = new ListViewItem("7");
+            ListViewItem listViewItem8 = new ListViewItem("8");
+            ListViewItem listViewItem9 = new ListViewItem("9");
+            ListViewItem listViewItem10 = new ListViewItem("10asdsadsadsa");
+            ListViewItem listViewItem11 = new ListViewItem("11");
             label1 = new Label();
             label2 = new Label();
             button1 = new Button();
@@ -83,6 +83,10 @@ namespace RBSaveEditor
             label7 = new Label();
             label3 = new Label();
             tab_Pilot = new TabPage();
+            btn_Pilot_ItemExport = new Button();
+            btn_Pilot_ItemImport = new Button();
+            tb_Pilot_ItemCode = new TextBox();
+            uc_ItemCard = new CustomControls.ItemCardControl();
             list_StorageInventory = new ListView();
             num_Fate = new NumericUpDown();
             num_Credits = new NumericUpDown();
@@ -92,14 +96,6 @@ namespace RBSaveEditor
             label23 = new Label();
             label31 = new Label();
             label28 = new Label();
-            lbl_SelectedItem_Dbg = new Label();
-            lbl_SelectedItem_Affixes = new Label();
-            label27 = new Label();
-            label26 = new Label();
-            lbl_SelectedItem_SpecializationName = new Label();
-            lbl_SelectedItem_Type = new Label();
-            label25 = new Label();
-            label24 = new Label();
             label22 = new Label();
             label20 = new Label();
             num_Lvl = new NumericUpDown();
@@ -253,8 +249,8 @@ namespace RBSaveEditor
             // 
             // Column4
             // 
-            dataGridViewCellStyle3.Alignment = DataGridViewContentAlignment.TopRight;
-            Column4.DefaultCellStyle = dataGridViewCellStyle3;
+            dataGridViewCellStyle1.Alignment = DataGridViewContentAlignment.TopRight;
+            Column4.DefaultCellStyle = dataGridViewCellStyle1;
             Column4.HeaderText = "Tier";
             Column4.MinimumWidth = 20;
             Column4.Name = "Column4";
@@ -271,8 +267,8 @@ namespace RBSaveEditor
             // 
             // Column3
             // 
-            dataGridViewCellStyle4.Alignment = DataGridViewContentAlignment.TopRight;
-            Column3.DefaultCellStyle = dataGridViewCellStyle4;
+            dataGridViewCellStyle2.Alignment = DataGridViewContentAlignment.TopRight;
+            Column3.DefaultCellStyle = dataGridViewCellStyle2;
             Column3.HeaderText = "Level";
             Column3.MinimumWidth = 25;
             Column3.Name = "Column3";
@@ -553,6 +549,10 @@ namespace RBSaveEditor
             // 
             // tab_Pilot
             // 
+            tab_Pilot.Controls.Add(btn_Pilot_ItemExport);
+            tab_Pilot.Controls.Add(btn_Pilot_ItemImport);
+            tab_Pilot.Controls.Add(tb_Pilot_ItemCode);
+            tab_Pilot.Controls.Add(uc_ItemCard);
             tab_Pilot.Controls.Add(list_StorageInventory);
             tab_Pilot.Controls.Add(num_Fate);
             tab_Pilot.Controls.Add(num_Credits);
@@ -562,14 +562,6 @@ namespace RBSaveEditor
             tab_Pilot.Controls.Add(label23);
             tab_Pilot.Controls.Add(label31);
             tab_Pilot.Controls.Add(label28);
-            tab_Pilot.Controls.Add(lbl_SelectedItem_Dbg);
-            tab_Pilot.Controls.Add(lbl_SelectedItem_Affixes);
-            tab_Pilot.Controls.Add(label27);
-            tab_Pilot.Controls.Add(label26);
-            tab_Pilot.Controls.Add(lbl_SelectedItem_SpecializationName);
-            tab_Pilot.Controls.Add(lbl_SelectedItem_Type);
-            tab_Pilot.Controls.Add(label25);
-            tab_Pilot.Controls.Add(label24);
             tab_Pilot.Controls.Add(label22);
             tab_Pilot.Controls.Add(label20);
             tab_Pilot.Controls.Add(num_Lvl);
@@ -583,10 +575,46 @@ namespace RBSaveEditor
             tab_Pilot.Text = "Pilot";
             tab_Pilot.UseVisualStyleBackColor = true;
             // 
+            // btn_Pilot_ItemExport
+            // 
+            btn_Pilot_ItemExport.Location = new Point(23, 430);
+            btn_Pilot_ItemExport.Name = "btn_Pilot_ItemExport";
+            btn_Pilot_ItemExport.Size = new Size(75, 23);
+            btn_Pilot_ItemExport.TabIndex = 8;
+            btn_Pilot_ItemExport.Text = "Export";
+            btn_Pilot_ItemExport.UseVisualStyleBackColor = true;
+            btn_Pilot_ItemExport.Click += btn_Pilot_ItemExport_Click;
+            // 
+            // btn_Pilot_ItemImport
+            // 
+            btn_Pilot_ItemImport.Location = new Point(23, 401);
+            btn_Pilot_ItemImport.Name = "btn_Pilot_ItemImport";
+            btn_Pilot_ItemImport.Size = new Size(75, 23);
+            btn_Pilot_ItemImport.TabIndex = 8;
+            btn_Pilot_ItemImport.Text = "Import";
+            btn_Pilot_ItemImport.UseVisualStyleBackColor = true;
+            btn_Pilot_ItemImport.Click += btn_Pilot_ItemImport_Click;
+            // 
+            // tb_Pilot_ItemCode
+            // 
+            tb_Pilot_ItemCode.Location = new Point(104, 402);
+            tb_Pilot_ItemCode.Multiline = true;
+            tb_Pilot_ItemCode.Name = "tb_Pilot_ItemCode";
+            tb_Pilot_ItemCode.Size = new Size(369, 51);
+            tb_Pilot_ItemCode.TabIndex = 7;
+            // 
+            // uc_ItemCard
+            // 
+            uc_ItemCard.Item_Title = "Title";
+            uc_ItemCard.Location = new Point(479, 76);
+            uc_ItemCard.Name = "uc_ItemCard";
+            uc_ItemCard.Size = new Size(300, 388);
+            uc_ItemCard.TabIndex = 6;
+            // 
             // list_StorageInventory
             // 
             list_StorageInventory.GridLines = true;
-            list_StorageInventory.Items.AddRange(new ListViewItem[] { listViewItem12, listViewItem13, listViewItem14, listViewItem15, listViewItem16, listViewItem17, listViewItem18, listViewItem19, listViewItem20, listViewItem21, listViewItem22 });
+            list_StorageInventory.Items.AddRange(new ListViewItem[] { listViewItem1, listViewItem2, listViewItem3, listViewItem4, listViewItem5, listViewItem6, listViewItem7, listViewItem8, listViewItem9, listViewItem10, listViewItem11 });
             list_StorageInventory.Location = new Point(23, 256);
             list_StorageInventory.MultiSelect = false;
             list_StorageInventory.Name = "list_StorageInventory";
@@ -671,83 +699,11 @@ namespace RBSaveEditor
             // 
             label28.AutoSize = true;
             label28.ForeColor = Color.Red;
-            label28.Location = new Point(32, 398);
+            label28.Location = new Point(229, 223);
             label28.Name = "label28";
             label28.Size = new Size(195, 30);
             label28.TabIndex = 3;
-            label28.Text = "↑ This is Station 6 storage inventory.\r\n   Select an item to view details.";
-            // 
-            // lbl_SelectedItem_Dbg
-            // 
-            lbl_SelectedItem_Dbg.AutoSize = true;
-            lbl_SelectedItem_Dbg.Location = new Point(663, 273);
-            lbl_SelectedItem_Dbg.Name = "lbl_SelectedItem_Dbg";
-            lbl_SelectedItem_Dbg.Size = new Size(12, 15);
-            lbl_SelectedItem_Dbg.TabIndex = 2;
-            lbl_SelectedItem_Dbg.Text = "_";
-            // 
-            // lbl_SelectedItem_Affixes
-            // 
-            lbl_SelectedItem_Affixes.AutoSize = true;
-            lbl_SelectedItem_Affixes.Location = new Point(663, 313);
-            lbl_SelectedItem_Affixes.Name = "lbl_SelectedItem_Affixes";
-            lbl_SelectedItem_Affixes.Size = new Size(12, 15);
-            lbl_SelectedItem_Affixes.TabIndex = 2;
-            lbl_SelectedItem_Affixes.Text = "_";
-            // 
-            // label27
-            // 
-            label27.AutoSize = true;
-            label27.Location = new Point(527, 313);
-            label27.Name = "label27";
-            label27.Size = new Size(43, 15);
-            label27.TabIndex = 2;
-            label27.Text = "Affixes";
-            // 
-            // label26
-            // 
-            label26.AutoSize = true;
-            label26.Location = new Point(527, 273);
-            label26.Name = "label26";
-            label26.Size = new Size(130, 15);
-            label26.TabIndex = 2;
-            label26.Text = "item.ToString() (debug)";
-            // 
-            // lbl_SelectedItem_SpecializationName
-            // 
-            lbl_SelectedItem_SpecializationName.AutoSize = true;
-            lbl_SelectedItem_SpecializationName.Location = new Point(663, 243);
-            lbl_SelectedItem_SpecializationName.Name = "lbl_SelectedItem_SpecializationName";
-            lbl_SelectedItem_SpecializationName.Size = new Size(12, 15);
-            lbl_SelectedItem_SpecializationName.TabIndex = 2;
-            lbl_SelectedItem_SpecializationName.Text = "_";
-            // 
-            // lbl_SelectedItem_Type
-            // 
-            lbl_SelectedItem_Type.AutoSize = true;
-            lbl_SelectedItem_Type.Location = new Point(663, 228);
-            lbl_SelectedItem_Type.Name = "lbl_SelectedItem_Type";
-            lbl_SelectedItem_Type.Size = new Size(12, 15);
-            lbl_SelectedItem_Type.TabIndex = 2;
-            lbl_SelectedItem_Type.Text = "_";
-            // 
-            // label25
-            // 
-            label25.AutoSize = true;
-            label25.Location = new Point(527, 243);
-            label25.Name = "label25";
-            label25.Size = new Size(114, 15);
-            label25.TabIndex = 2;
-            label25.Text = "Specialization Name";
-            // 
-            // label24
-            // 
-            label24.AutoSize = true;
-            label24.Location = new Point(527, 228);
-            label24.Name = "label24";
-            label24.Size = new Size(58, 15);
-            label24.TabIndex = 2;
-            label24.Text = "Item Type";
+            label28.Text = "   This is Station 6 storage inventory.\r\n↓ Select an item to view details.";
             // 
             // label22
             // 
@@ -1018,18 +974,10 @@ namespace RBSaveEditor
         private ListView list_StorageInventory;
         private Label label22;
         private Label label23;
-        private Label label24;
-        private Label label25;
-        private Label label26;
-        private Label lbl_SelectedItem_Dbg;
-        private Label lbl_SelectedItem_SpecializationName;
-        private Label lbl_SelectedItem_Type;
         private Label label31;
         private NumericUpDown num_Credits;
         private NumericUpDown num_Fate;
         private Label label32;
-        private Label lbl_SelectedItem_Affixes;
-        private Label label27;
         private Button btn_SaveMetagame;
         private Button btn_SavePilot;
         private Label label28;
@@ -1039,5 +987,9 @@ namespace RBSaveEditor
         private DataGridViewTextBoxColumn Column3;
         private DataGridViewTextBoxColumn Column2;
         private DataGridViewTextBoxColumn Column5;
+        private CustomControls.ItemCardControl uc_ItemCard;
+        private TextBox tb_Pilot_ItemCode;
+        private Button btn_Pilot_ItemExport;
+        private Button btn_Pilot_ItemImport;
     }
 }

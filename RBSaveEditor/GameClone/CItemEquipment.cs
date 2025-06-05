@@ -1,28 +1,18 @@
 /*  GameClone/CItemEquipment.cs
- *  Version 1.0 (2025.05.30)
+ *  Version 2 (2025.06.04)
  *  
  *  Contributor
  *      Arime-chan (Author)
  */
 
-using System.Collections.Generic;
 using RBSaveEditor.GameClone.BaseClasses;
 
 namespace RBSaveEditor.GameClone
 {
     public class CItemEquipment : CItem
     {
-        public string RareNameAdjective => s_RareNameAdjectives[m_RandomizedRareNameAdjectiveIndex];
-        public string RareNameNoun => s_RareNameNouns[m_RandomizedRareNameBaseNounIndex];
-
-        public CItemEquipment()
-        { }
-
-        public CItemEquipment(CItemEquipment _other) : base(_other)
-        {
-            m_RandomizedRareNameAdjectiveIndex = _other.m_RandomizedRareNameAdjectiveIndex;
-            m_RandomizedRareNameBaseNounIndex = _other.m_RandomizedRareNameBaseNounIndex;
-        }
+        //public string RareNameAdjective => s_RareNameAdjectives[m_RandomizedRareNameAdjectiveIndex];
+        //public string RareNameNoun => s_RareNameNouns[m_RandomizedRareNameBaseNounIndex];
 
 
         public override void Load(SaveFileReader _reader)
@@ -41,8 +31,33 @@ namespace RBSaveEditor.GameClone
             _writer.WriteInt32(m_RandomizedRareNameBaseNounIndex);
         }
 
+        public override IDeepCloneable DeepClone()
+        {
+            return base.DeepClone();
+        }
 
-        private static string[] s_RareNameAdjectives =
+
+        public override string GetFullDisplayName()
+        {
+            if (m_EquipmentType == eEquipmentType.FATECore)
+            {
+                return "Fate Core";
+            }
+
+            if (m_Rarity == eRarity.Rare)
+            {
+                return GetRareItemDisplayName();
+            }
+
+            return base.GetFullDisplayName();
+        }
+
+
+        private string GetRareItemDisplayName()
+            => s_RareNameAdjectives[m_RandomizedRareNameAdjectiveIndex] + " " + s_RareNameNouns[m_RandomizedRareNameBaseNounIndex];
+
+
+        private static readonly string[] s_RareNameAdjectives =
         {
             "Unscrupulous",
             "Black Market",
@@ -67,7 +82,7 @@ namespace RBSaveEditor.GameClone
             "Galaxy",
         };
 
-        private static string[] s_RareNameNouns =
+        private static readonly string[] s_RareNameNouns =
         {
             "Container",
             "Carry",

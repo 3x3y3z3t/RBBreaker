@@ -116,6 +116,82 @@ namespace RBSaveEditor
                 }
             }
         }
+
+
+
+
+
+
+
+        private void btn_Pilot_ItemImport_Click(object sender, EventArgs e)
+        {
+            if (m_LoadedPilot == null)
+                return;
+
+            if (m_SelectedItemIndex == -1)
+            {
+                Console.WriteLine("No item selected.");
+                return;
+            }
+
+            if (tb_Pilot_ItemCode.Text == string.Empty)
+            {
+                return;
+            }
+
+            //string input = tb_Pilot_ItemCode.Text.Replace("\r", "").Replace("\n", "");
+            byte[] bytes;
+            try
+            {
+                bytes = Convert.FromBase64String(tb_Pilot_ItemCode.Text);
+            }
+            catch (Exception _ex)
+            {
+                Console.WriteLine("Inputted string is not a valid Base64 string: " + _ex);
+                return;
+            }
+
+            CItem? item = CItem.ImportFromByteArray(bytes);
+            if (item == null)
+            {
+                Console.WriteLine("Couldn't create item from inputted string.");
+                return;
+            }
+
+            int index = m_SelectedItemIndex;
+            var inventoryItems = m_LoadedPilot.Player.Inventory.Items;
+
+            int rootInvIndex = inventoryItems[index].RootInventoryIndex;
+            item.RootInventoryIndex = rootInvIndex;
+            inventoryItems[index] = item;
+
+            PopulateInventory();
+            list_StorageInventory.Items[index].Focused = true;
+            list_StorageInventory.Items[index].Selected = true;
+        }
+
+        private void btn_Pilot_ItemExport_Click(object sender, EventArgs e)
+        {
+            if (uc_ItemCard.SelectedItem == null)
+            {
+                tb_Pilot_ItemCode.Text = string.Empty;
+                return;
+            }
+
+            byte[] arr = CItem.ExportToByteArray(uc_ItemCard.SelectedItem);
+
+            string str = Convert.ToBase64String(arr);
+            Console.WriteLine("Item exported to Base64 string.");
+
+
+            tb_Pilot_ItemCode.Text = str;
+        }
+
+
+
+
+
+
         #endregion
 
 
@@ -125,15 +201,15 @@ namespace RBSaveEditor
 
         private void lbl_SelectedItem_Clear()
         {
-            lbl_SelectedItem_Type.Text = Constants.EmptyLabel;
-            lbl_SelectedItem_SpecializationName.Text = Constants.EmptyLabel;
-            lbl_SelectedItem_Dbg.Text = Constants.EmptyLabel;
 
-            lbl_SelectedItem_Affixes.Text = Constants.EmptyLabel;
         }
 
         private void lbl_SelectedItem_Populate(CItem _item)
         {
+            uc_ItemCard.PopulateWithItem(_item);
+            //uc_ItemCard.Item_Title = _item.ItemType.ToString();
+
+
             switch (_item.ItemType)
             {
                 case eItemType.Equipment:
@@ -142,11 +218,6 @@ namespace RBSaveEditor
 
             }
 
-            lbl_SelectedItem_Type.Text = _item.ItemType.ToString();
-            lbl_SelectedItem_SpecializationName.Text = _item.SpecializationName.ToString();
-            lbl_SelectedItem_Dbg.Text = _item.ToString();
-
-            lbl_SelectedItem_Affixes.Text = Constants.EmptyLabel;
 
 
 
@@ -155,9 +226,6 @@ namespace RBSaveEditor
 
         private void lbl_SelectedItem_Populate_Equipment(CItemEquipment _item)
         {
-            lbl_SelectedItem_Type.Text = _item.ItemType.ToString() + " (" + _item.EquipmentType.ToString() + ")";
-            lbl_SelectedItem_SpecializationName.Text = _item.Rarity.ToString() + " " + _item.SpecializationName.ToString();
-            lbl_SelectedItem_Dbg.Text = _item.ToString();
 
             string affixes = "";
             foreach (var affix in _item.Affixes)
@@ -167,7 +235,6 @@ namespace RBSaveEditor
 
             affixes += "\n" + _item.GetUniqueModifierString();
 
-            lbl_SelectedItem_Affixes.Text = affixes;
 
         }
 
@@ -175,7 +242,9 @@ namespace RBSaveEditor
         {
             if (!_evt.IsSelected || m_LoadedPilot == null)
             {
+                uc_ItemCard.ClearItemCard();
                 lbl_SelectedItem_Clear();
+                m_SelectedItemIndex = -1;
                 return;
             }
 
@@ -183,10 +252,12 @@ namespace RBSaveEditor
             if (_evt.ItemIndex > inventoryItems.Count)
             {
                 Console.WriteLine("list_StorageInventory_Click(): Selected index out of range (this should not happen).");
+                uc_ItemCard.ClearItemCard();
                 lbl_SelectedItem_Clear();
                 return;
             }
 
+            m_SelectedItemIndex = _evt.ItemIndex;
             lbl_SelectedItem_Populate(inventoryItems[_evt.ItemIndex]);
         }
 
@@ -283,32 +354,7 @@ namespace RBSaveEditor
 
 
 
-
-
-
-            {
-                list_StorageInventory.SuspendLayout();
-                list_StorageInventory.Items.Clear();
-
-                var items = game.Player.Inventory.Items;
-                items.Sort((_item0, _item1) => { return _item0.RootInventoryIndex - _item1.RootInventoryIndex; });
-
-                List<ListViewItem> lst = new(items.Count);
-                foreach (var item in items)
-                {
-                    ListViewItem lvi = new()
-                    {
-                        Text = item.ItemType.ToString(),
-                        ToolTipText = item.ToString(),
-                    };
-
-                    lst.Add(lvi);
-                }
-
-                list_StorageInventory.Items.AddRange(lst.ToArray());
-
-                list_StorageInventory.ResumeLayout();
-            }
+            PopulateInventory();
 
 
 
@@ -341,6 +387,34 @@ namespace RBSaveEditor
             ActiveControl = null;
         }
 
+        private void PopulateInventory()
+        {
+            if (m_LoadedPilot == null)
+                return;
+
+            list_StorageInventory.SuspendLayout();
+            list_StorageInventory.Items.Clear();
+
+            var items = m_LoadedPilot.Player.Inventory.Items;
+            items.Sort((_item0, _item1) => { return _item0.RootInventoryIndex - _item1.RootInventoryIndex; });
+
+            List<ListViewItem> lst = new(items.Count);
+            foreach (var item in items)
+            {
+                ListViewItem lvi = new()
+                {
+                    Text = item.GetFullDisplayName(),
+                    ToolTipText = item.GetFullDisplayName(),
+                };
+
+                lst.Add(lvi);
+            }
+
+            list_StorageInventory.Items.AddRange(lst.ToArray());
+
+            list_StorageInventory.ResumeLayout();
+        }
+
 
 
 
@@ -350,6 +424,8 @@ namespace RBSaveEditor
 
         private CGame? m_LoadedPilot;
         private CGame? m_ModdedPilot;
+
+        private int m_SelectedItemIndex = -1;
     }
 
 }

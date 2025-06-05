@@ -36,13 +36,19 @@ namespace RBSaveEditor
 
         private void Form1_Load(object sender, EventArgs e)
         {
+            uc_ItemCard.ClearItemCard();
+
+
+
             TalentManager.Init();
 
 
 
-            //tabControl_Main.SelectedTab = tab_Pilot;
+            tabControl_Main.SelectedTab = tab_Pilot;
             list_StorageInventory.Items.Clear();
             combo_Meta_Tier.SelectedIndex = -1;
+
+            //uc_ItemCard.Invalidate();
 
 
 
@@ -55,14 +61,18 @@ namespace RBSaveEditor
 
             string pilotFullname = "C:\\Users\\TOWER\\AppData\\LocalLow\\Element Games\\Reality Break\\Reality Break pilot 1.sav";
 
-            //LoadPilot("Reality Break pilot 1.sav");
-            //PopulatePilot();
 
 
 
 
             LoadMetagame();
             PopulateMetagame();
+
+
+            LoadPilot("Reality Break pilot 1.sav");
+            PopulatePilot();
+
+
 
             return;
 
@@ -568,20 +578,6 @@ namespace RBSaveEditor
 
             talents[key] = level;
         }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
     }
 

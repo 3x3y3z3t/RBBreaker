@@ -1,5 +1,5 @@
 /*  GameClone/BaseClasses/CItem.cs
- *  Version 1.0 (2025.05.30)
+ *  Version 2 (2025.06.05)
  *  
  *  Contributor
  *      Arime-chan (Author)
@@ -16,7 +16,11 @@ namespace RBSaveEditor.GameClone.BaseClasses
 
         public eEquipmentType EquipmentType => m_EquipmentType;
         //public eSpecializationSubtype SpecializationSubType => m_SpecializationSubtype;
-        public eRarity Rarity => m_Rarity;
+        public eRarity Rarity { get => m_Rarity; set => m_Rarity = value; }
+
+
+        public int ItemLevel { get => m_ItemLevel; set => m_ItemLevel = value; }
+
 
         public string SpecializationName => m_Specialization_Name;
 
@@ -30,6 +34,8 @@ namespace RBSaveEditor.GameClone.BaseClasses
 
 
         public int RootInventoryIndex { get => m_RootInventorySlotIndex; set => m_RootInventorySlotIndex = value; }
+
+        public int StackCount { get => m_StackCount; set => m_StackCount = value; }
 
 
 
@@ -219,7 +225,7 @@ namespace RBSaveEditor.GameClone.BaseClasses
             _writer.WriteInt32(m_Entity_TeamId);
         }
 
-        public IDeepCloneable DeepClone()
+        public virtual IDeepCloneable DeepClone()
         {
             var copy = (CItem)MemberwiseClone();
 
@@ -260,6 +266,67 @@ namespace RBSaveEditor.GameClone.BaseClasses
 
             return str;
         }
+
+
+        public virtual string GetFullDisplayName()
+        {
+            switch (m_Proto_ItemType)
+            {
+                case eItemType.Equipment:
+                    return "Item: " + m_EquipmentType.ToString();
+                case eItemType.Resource:
+                    return m_Specialization_Name.ToString();
+                case eItemType.Chassis:
+                    return "[Chasis]";
+                default:
+                    return "[Unknown Item]";
+            }
+        }
+
+        public string GetStatString_Fate()
+        {
+            List<string> lst = GetAffixDisplayStrings(eItemAffixGroup.Fate);
+
+            string result = "";
+            foreach (string str in lst)
+            {
+                result += str + "\n";
+            }
+
+            return result;
+        }
+
+
+
+
+        public List<string> GetAffixDisplayStrings(eItemAffixGroup _affixGroup)
+        {
+            if (m_Affixes.Count == 0)
+                return new();
+
+
+            List<string> lst = new();
+            foreach (var affix in m_Affixes)
+            {
+                if (affix.AffixGroup != _affixGroup)
+                    continue;
+
+                lst.Add(affix.ToString());
+
+
+
+
+
+            }
+
+            return lst;
+        }
+
+
+
+
+
+
 
 
         public static CItem? CreateAndLoad(SaveFileReader _reader)
@@ -303,13 +370,43 @@ namespace RBSaveEditor.GameClone.BaseClasses
             return item;
         }
 
+        public static CItem? ImportFromByteArray(byte[] _bytes)
+        {
+            SaveFileReader reader;
+            try
+            {
+                reader = new(_bytes);
+            }
+            catch (Exception _ex)
+            {
+                Console.WriteLine("CItem.ImportFromByteArray(): Couldn't create reader from bytes array: " + _ex);
+                return null;
+            }
+
+            CItem? item = CreateAndLoad(reader);
+            reader.Close();
+
+            return item;
+        }
+
+        public static byte[] ExportToByteArray(CItem _item)
+        {
+            SaveFileWriter writer = new();
+            _item.Save(writer);
+
+            byte[] arr = writer.SaveToBytesArray();
+            writer.Close();
+
+            return arr;
+        }
+
 
         private eItemType m_Proto_ItemType = eItemType.Equipment;
         private string m_Proto_Name = string.Empty;
 
-        private eEquipmentType m_EquipmentType = eEquipmentType.None;
+        protected eEquipmentType m_EquipmentType = eEquipmentType.None;
         private eSpecializationSubtype m_SpecializationSubtype = eSpecializationSubtype.Main;
-        private eRarity m_Rarity = eRarity.Junk;
+        protected eRarity m_Rarity = eRarity.Junk;
 
         private eShipClass m_RequiredShipClass = eShipClass.Fighter;
         private int m_RequiredLevel = 0;

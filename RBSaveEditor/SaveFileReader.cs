@@ -1,5 +1,5 @@
 /*  SaveFileReader.cs
- *  Version 1.0 (2025.06.01)
+ *  Version 2 (2025.06.05)
  *  
  *  Contributor
  *      Arime-chan (Author)
@@ -30,6 +30,14 @@ namespace RBSaveEditor
             MemoryStream memoryStream = new((int)fileStream.Length);
             fileStream.CopyTo(memoryStream);
             fileStream.Close();
+
+            memoryStream.Seek(0, SeekOrigin.Begin);
+            m_Reader = new(memoryStream);
+        }
+
+        public SaveFileReader(byte[] _buffer)
+        {
+            MemoryStream memoryStream = new(_buffer);
 
             memoryStream.Seek(0, SeekOrigin.Begin);
             m_Reader = new(memoryStream);

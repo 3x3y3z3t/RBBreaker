@@ -1,5 +1,5 @@
 /*  SaveFileReader.cs
- *  Version 1.0 (2025.06.01)
+ *  Version 2 (2025.06.05)
  *  
  *  Contributor
  *      Arime-chan (Author)
@@ -11,7 +11,6 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace RBSaveEditor
 {
@@ -30,6 +29,11 @@ namespace RBSaveEditor
             m_Writer.BaseStream.Seek(0, SeekOrigin.Begin);
             m_Writer.BaseStream.CopyTo(stream);
             stream.Close();
+        }
+
+        public byte[] SaveToBytesArray()
+        {
+            return ((MemoryStream)m_Writer.BaseStream).ToArray();
         }
 
         public void Close()
