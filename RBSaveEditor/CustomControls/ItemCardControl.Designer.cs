@@ -117,6 +117,7 @@ namespace RBSaveEditor.CustomControls
             // num_StackCount
             // 
             num_StackCount.Location = new Point(211, 357);
+            num_StackCount.Maximum = new decimal(int.MaxValue);
             num_StackCount.Name = "num_StackCount";
             num_StackCount.Size = new Size(81, 23);
             num_StackCount.TabIndex = 8;

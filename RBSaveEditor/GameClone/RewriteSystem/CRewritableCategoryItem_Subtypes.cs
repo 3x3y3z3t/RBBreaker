@@ -1,10 +1,12 @@
 /*  GameClone/RewriteSystem/CRewritableCategoryItem_Subtypes.cs
- *  Version 1.0 (2025.06.03)
+ *  Version 2 (2025.06.23)
  *  
  *  Contributor
  *      Arime-chan (Author)
  */
 
+using System;
+using RBSaveEditor.GameClone.BaseClasses;
 using RBSaveEditor.GameClone.BaseClasses.RewriteSystem;
 
 namespace RBSaveEditor.GameClone.RewriteSystem
@@ -111,6 +113,49 @@ namespace RBSaveEditor.GameClone.RewriteSystem
         {
             return new CRewritableEntryRequiredLevel();
         }
+
+
+        public override void Load(SaveFileReader _reader)
+        {
+            base.Load(_reader);
+
+            m_CraftingBudget = _reader.ReadInt32();
+
+            int count = _reader.ReadInt32();
+            m_FragmentItems = new(count);
+            for (int i = 0; i < count; ++i)
+            {
+                CItem? item = CItem.CreateAndLoad(_reader);
+                if (item == null)
+                {
+                    Console.WriteLine("CRewritableCategoryItemCrafting.Load: Couldn't create Fragment item is null. " + _reader.ToString());
+                    throw new Exception("CRewritableCategoryItemCrafting.Load: Couldn't create Fragment item is null. " + _reader.ToString());
+                }
+                m_FragmentItems.Add(item);
+            }
+
+            m_FragmentsApplied = _reader.ReadBool();
+        }
+
+        public override void Save(SaveFileWriter _writer)
+        {
+            base.Save(_writer);
+
+            _writer.WriteInt32(m_CraftingBudget);
+
+            _writer.WriteInt32(m_FragmentItems.Count);
+            foreach (CItem item in m_FragmentItems)
+            {
+                item.Save(_writer);
+            }
+            _writer.WriteBool(m_FragmentsApplied);
+        }
+
+
+        private int m_CraftingBudget = 0;
+
+        private List<CItem> m_FragmentItems = null!;
+        private bool m_FragmentsApplied = false;
     }
 
 }

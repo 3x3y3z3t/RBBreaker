@@ -2,7 +2,7 @@
 This tool is a save editor for Reality Break.  
 Current version is still a proof-of-concept so its functionality is limited, only a few values can be read and write (details below).
 
-Version: **0.3.0 (2025.06.05)**
+Version: **0.3.1 (2025.06.05)**
 
 [Releases (win-x64 compiled binary included)](https://github.com/3x3y3z3t/RBBreaker/releases)
 

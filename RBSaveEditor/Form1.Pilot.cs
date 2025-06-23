@@ -1,5 +1,5 @@
 /*  Form1.Pilot.cs
- *  Version 1.0 (2025.06.03)
+ *  Version 2 (2025.06.23)
  *  
  *  Contributor
  *      Arime-chan (Author)
@@ -73,8 +73,17 @@ namespace RBSaveEditor
             lbl_NextLvlXp.Text = "/ " + progression.GetXPToNextLevel((int)num_Lvl.Value).ToString("#,###");
         }
 
-        private void num_Xp_ValueChanged(object sender, EventArgs e)
+        private void tb_Pilot_Xp_TextChanged(object sender, EventArgs e)
         {
+            if (!double.TryParse(tb_Pilot_Xp.Text, out double xp))
+            {
+                tb_Pilot_Xp.ForeColor = Color.Red;
+            }
+            else
+            {
+                tb_Pilot_Xp.ForeColor = DefaultForeColor;
+            }
+
             if (m_LoadedPilot == null)
                 return;
 
@@ -82,7 +91,15 @@ namespace RBSaveEditor
             if (progression == null)
                 return;
 
-            progression.Experience = (double)num_Xp.Value;
+            progression.Experience = xp;
+        }
+
+        private void tb_Pilot_Xp_Leave(object sender, EventArgs e)
+        {
+            if (double.TryParse(tb_Pilot_Xp.Text, out double xp))
+            {
+                tb_Pilot_Xp.Text = xp.ToString("#,###");
+            }
         }
 
         private void num_Credits_ValueChanged(object sender, EventArgs e)
@@ -347,7 +364,8 @@ namespace RBSaveEditor
                 return;
 
             num_Lvl.Value = progression.Level;
-            num_Xp.Value = (decimal)progression.Experience;
+            tb_Pilot_Xp.Text = progression.Experience.ToString("#,###");
+            //num_Xp.Value = (decimal)progression.Experience;
             lbl_NextLvlXp.Text = "/ " + progression.GetXPToNextLevel().ToString("#,###");
 
 

@@ -83,14 +83,14 @@ namespace RBSaveEditor
             label7 = new Label();
             label3 = new Label();
             tab_Pilot = new TabPage();
+            tb_Pilot_Xp = new TextBox();
             btn_Pilot_ItemExport = new Button();
             btn_Pilot_ItemImport = new Button();
             tb_Pilot_ItemCode = new TextBox();
-            uc_ItemCard = new CustomControls.ItemCardControl();
+            uc_ItemCard = new RBSaveEditor.CustomControls.ItemCardControl();
             list_StorageInventory = new ListView();
             num_Fate = new NumericUpDown();
             num_Credits = new NumericUpDown();
-            num_Xp = new NumericUpDown();
             lbl_NextLvlXp = new Label();
             label32 = new Label();
             label23 = new Label();
@@ -119,7 +119,6 @@ namespace RBSaveEditor
             tab_Pilot.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)num_Fate).BeginInit();
             ((System.ComponentModel.ISupportInitialize)num_Credits).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)num_Xp).BeginInit();
             ((System.ComponentModel.ISupportInitialize)num_Lvl).BeginInit();
             SuspendLayout();
             // 
@@ -549,6 +548,7 @@ namespace RBSaveEditor
             // 
             // tab_Pilot
             // 
+            tab_Pilot.Controls.Add(tb_Pilot_Xp);
             tab_Pilot.Controls.Add(btn_Pilot_ItemExport);
             tab_Pilot.Controls.Add(btn_Pilot_ItemImport);
             tab_Pilot.Controls.Add(tb_Pilot_ItemCode);
@@ -556,7 +556,6 @@ namespace RBSaveEditor
             tab_Pilot.Controls.Add(list_StorageInventory);
             tab_Pilot.Controls.Add(num_Fate);
             tab_Pilot.Controls.Add(num_Credits);
-            tab_Pilot.Controls.Add(num_Xp);
             tab_Pilot.Controls.Add(lbl_NextLvlXp);
             tab_Pilot.Controls.Add(label32);
             tab_Pilot.Controls.Add(label23);
@@ -574,6 +573,17 @@ namespace RBSaveEditor
             tab_Pilot.TabIndex = 1;
             tab_Pilot.Text = "Pilot";
             tab_Pilot.UseVisualStyleBackColor = true;
+            // 
+            // tb_Pilot_Xp
+            // 
+            tb_Pilot_Xp.Location = new Point(63, 50);
+            tb_Pilot_Xp.MaxLength = 327672;
+            tb_Pilot_Xp.Name = "tb_Pilot_Xp";
+            tb_Pilot_Xp.Size = new Size(137, 23);
+            tb_Pilot_Xp.TabIndex = 9;
+            tb_Pilot_Xp.TextAlign = HorizontalAlignment.Right;
+            tb_Pilot_Xp.TextChanged += tb_Pilot_Xp_TextChanged;
+            tb_Pilot_Xp.Leave += tb_Pilot_Xp_Leave;
             // 
             // btn_Pilot_ItemExport
             // 
@@ -646,21 +656,10 @@ namespace RBSaveEditor
             num_Credits.ThousandsSeparator = true;
             num_Credits.ValueChanged += num_Credits_ValueChanged;
             // 
-            // num_Xp
-            // 
-            num_Xp.Location = new Point(63, 50);
-            num_Xp.Maximum = new decimal(new int[] { -1, 0, 0, 0 });
-            num_Xp.Name = "num_Xp";
-            num_Xp.Size = new Size(137, 23);
-            num_Xp.TabIndex = 3;
-            num_Xp.TextAlign = HorizontalAlignment.Right;
-            num_Xp.ThousandsSeparator = true;
-            num_Xp.ValueChanged += num_Xp_ValueChanged;
-            // 
             // lbl_NextLvlXp
             // 
             lbl_NextLvlXp.AutoSize = true;
-            lbl_NextLvlXp.Location = new Point(206, 52);
+            lbl_NextLvlXp.Location = new Point(206, 53);
             lbl_NextLvlXp.Name = "lbl_NextLvlXp";
             lbl_NextLvlXp.Size = new Size(21, 15);
             lbl_NextLvlXp.TabIndex = 2;
@@ -718,7 +717,7 @@ namespace RBSaveEditor
             // 
             label20.AutoSize = true;
             label20.ForeColor = SystemColors.HotTrack;
-            label20.Location = new Point(23, 52);
+            label20.Location = new Point(23, 53);
             label20.Name = "label20";
             label20.Size = new Size(27, 15);
             label20.TabIndex = 2;
@@ -912,7 +911,6 @@ namespace RBSaveEditor
             tab_Pilot.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)num_Fate).EndInit();
             ((System.ComponentModel.ISupportInitialize)num_Credits).EndInit();
-            ((System.ComponentModel.ISupportInitialize)num_Xp).EndInit();
             ((System.ComponentModel.ISupportInitialize)num_Lvl).EndInit();
             ResumeLayout(false);
             PerformLayout();
@@ -967,7 +965,6 @@ namespace RBSaveEditor
         private Label label18;
         private NumericUpDown num_Lvl;
         private Label label19;
-        private NumericUpDown num_Xp;
         private Label label20;
         private Label lbl_NextLvlXp;
         private Label label21;
@@ -991,5 +988,6 @@ namespace RBSaveEditor
         private TextBox tb_Pilot_ItemCode;
         private Button btn_Pilot_ItemExport;
         private Button btn_Pilot_ItemImport;
+        private TextBox tb_Pilot_Xp;
     }
 }

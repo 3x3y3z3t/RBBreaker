@@ -11,7 +11,7 @@ namespace RBSaveEditor
         {
             InitializeComponent();
 
-            Text = "RB Save Editor v0.2";
+            Text = "RB Save Editor v0.3";
 
         }
 
@@ -407,6 +407,7 @@ namespace RBSaveEditor
             tb_Meta_FunnyChar.ForeColor = SystemColors.WindowText;
             tb_Meta_FunnyCharCode.ForeColor = SystemColors.WindowText;
         }
+
 
 
 
